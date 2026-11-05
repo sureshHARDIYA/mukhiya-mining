@@ -51,7 +51,7 @@ The demo uses the package sources, not `dist`:
 
 ## CI, dependencies and releases
 
-- `.github/workflows/ci.yml`: on every push to `main` and every pull request: `pnpm install --frozen-lockfile`, lint, typecheck, test, both package builds, demo build, `pnpm audit --audit-level moderate`.
+- `.github/workflows/ci.yml`: on every push to `main` and every pull request: `pnpm install --frozen-lockfile`, lint, both package builds, typecheck (react resolves core through `dist`, so build comes first), test, demo build, `pnpm audit --audit-level moderate`.
 - `renovate.json`: Renovate (GitHub app must be installed on the repo) opens grouped non-major updates Monday mornings (Europe/Oslo), auto-merges minor/patch devDependency bumps once CI is green, never touches peer dependencies, raises vulnerability PRs immediately.
 - `.github/workflows/release.yml`: pushing a tag `vX.Y.Z` that equals the version in both `packages/*/package.json` runs the gate, publishes `@mukhiya-mining/core` and `@mukhiya-mining/react` to npm (`--access public`, provenance) and creates a GitHub release with generated notes. Needs the repository secret `NPM_TOKEN` (an npm automation token).
 - Release steps: bump both package versions (same number), commit, `git tag vX.Y.Z`, `git push --tags`.

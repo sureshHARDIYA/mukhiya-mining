@@ -24,8 +24,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      # react's typecheck resolves @mukhiya-mining/core through its dist, so build first.
+      - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm build
       - run: pnpm --filter demo build
       - run: pnpm audit --audit-level moderate
