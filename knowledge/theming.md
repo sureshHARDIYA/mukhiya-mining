@@ -85,5 +85,5 @@ Other CSS behaviour: node hover darkens the node (`brightness(0.86)`); edge hove
 ## Animation styling
 
 - The replay highlight colours are fixed values in the stylesheet, not `--pm-*` tokens: token fill `#f6b21b`, stroke `#5a3b00`; active edge stroke and arrow `#c0392b`. They do not change in dark mode.
-- Under `.pm-map.is-animating` the map follows the reference tool's replay look with flat colours, never opacity: `.pm-node-shape` fills `--pm-panel-strong` with a `--pm-line` border, the shine overlay is hidden, node text is `--pm-muted`, edges become `--pm-line` at 1.4 px with grey arrows, edge labels are hidden. `.pm-node.is-active` fills `--pm-accent` with `--pm-accent-fg` text; `.pm-edge.is-active` strokes `--pm-active-path` at 1.8 px.
+- Under `.pm-map.is-animating` the map uses the classic replay look with flat colours, never opacity: `.pm-node-shape` fills `--pm-panel-strong` with a `--pm-line` border, the shine overlay is hidden, node text is `--pm-muted`, edges become `--pm-line` at 1.4 px with grey arrows, edge labels are hidden. `.pm-node.is-active` fills `--pm-accent` with `--pm-accent-fg` text; `.pm-edge.is-active` strokes `--pm-active-path` at 1.8 px.
 - Highlighting is only CSS plus one class toggle per frame; no inline styles are written to map nodes.

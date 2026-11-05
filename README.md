@@ -18,11 +18,11 @@ account, one runtime dependency (`@dagrejs/dagre`), and it stays smooth with mil
 
 ## What you get
 
-- **Process map** (directly-follows graph) with reference-style conventions: a vertical spine, Start
+- **Process map** (directly-follows graph) with the conventions practitioners know from desktop process-mining tools: a vertical spine, Start
   and End markers, frequency or performance colouring, activity and path detail sliders, a
   secondary metric, and a popover with the numbers for any node or path.
 - **Replay animation**: one token per session moves along the paths at a speed you pick (the
-  whole log in 10 s to 10 min); nodes and paths light up as tokens pass, like the reference tool.
+  whole log in 10 s to 10 min); nodes and paths light up as tokens pass.
 - **Statistics**: events over time, active cases, case duration and events-per-case charts,
   global numbers, activity table, and a sortable cases/variants table.
 - **Cases**: virtualised list of every session with its variant and the full event trace.
@@ -98,7 +98,7 @@ The [`knowledge/`](knowledge/README.md) folder is the reference:
 [core API](knowledge/core-api.md), [React API](knowledge/react-api.md),
 [theming](knowledge/theming.md), [performance](knowledge/performance.md),
 [demo](knowledge/demo.md), [development](knowledge/development.md), the
-[design reference](knowledge/design-reference.md) behind the reference-like conventions and the
+[design reference](knowledge/design-reference.md) behind the map conventions and the
 [observation notes](knowledge/observations.md) it summarises.
 
 ## Develop

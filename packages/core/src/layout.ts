@@ -197,9 +197,9 @@ function laneRoute(m: MarkerSide, n: LayoutNode, lanes: { left: number; right: n
 
 /**
  * Start sits one rank above the drawing over the activity most cases start with; End one rank
- * below under the activity most cases end with, as the reference tool draws them. Activities on the adjacent
+ * below under the activity most cases end with, the way desktop process-mining tools draw them. Activities on the adjacent
  * rank connect straight; deeper ones leave sideways into a staggered lane down the nearer margin,
- * like the reference tool's dotted paths. With many deep connections the lanes would wrap nested boxes around
+ * like the dotted paths in those tools. With many deep connections the lanes would wrap nested boxes around
  * the drawing, so straight runs are used instead, the way dense dot layouts look.
  */
 /** Start/End connections to activities that are not on the top or bottom rank. */

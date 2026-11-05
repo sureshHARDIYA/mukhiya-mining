@@ -401,7 +401,7 @@
   transition: opacity 0.25s ease;
 }
 
-/* Animation, the reference tool's pattern: the map goes flat grey; a node holding a token turns solid blue and a
+/* Animation, the classic replay pattern: the map goes flat grey; a node holding a token turns solid blue and a
    path carrying one turns thin dark red. Flat colours, not opacity, so text stays legible. */
 .pm-map.is-animating .pm-node-shape {
   fill: var(--pm-panel-strong);

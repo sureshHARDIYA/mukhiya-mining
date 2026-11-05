@@ -226,7 +226,7 @@ formatValue(value: number, show: Show): string
 
 ### Paths (`paths.ts`)
 
-Geometry helpers used by the scene: `Point`, `smoothPath(points)` (clamped uniform cubic B-spline through the layout points, the curve dot draws: never overshoots, two points give a straight line), `shortenEnd(points, by)`, `arrowHead(from, tip, size)`, `arrowSize(strokeWidth) = 7 + strokeWidth * 1.6`, `arrowHalfWidth(size)`, `routePath(points)` (drops collinear bends, then straight line for two points or Catmull-Rom spline through the layout points; no forced vertical tangents, so a direct edge is a straight diagonal as in the reference tool), `midpoint(points)` (arc-length midpoint and angle), `selfLoop(node)`.
+Geometry helpers used by the scene: `Point`, `smoothPath(points)` (clamped uniform cubic B-spline through the layout points, the curve dot draws: never overshoots, two points give a straight line), `shortenEnd(points, by)`, `arrowHead(from, tip, size)`, `arrowSize(strokeWidth) = 7 + strokeWidth * 1.6`, `arrowHalfWidth(size)`, `routePath(points)` (drops collinear bends, then straight line for two points or Catmull-Rom spline through the layout points; no forced vertical tangents, so a direct edge is a straight diagonal, as in dot), `midpoint(points)` (arc-length midpoint and angle), `selfLoop(node)`.
 
 ## Export (`map/exportMap.ts`)
 
