@@ -63,21 +63,27 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     acyclicer: "greedy",
   });
   graph.setDefaultEdgeLabel(() => ({}));
-  // Start and End stay out of the layered layout so they cannot pull activities sideways.
+  // Start edges weigh 1 so the marker follows the spine. End stays out of the ranking: ranking it
+  // last drags long dummy chains through the ordering and bends the spine sideways.
   const isPseudo = (id: string) => id === START_NODE || id === END_NODE;
   for (const node of dfg.nodes) {
-    if (node.activity < 0) continue;
-    graph.setNode(node.id, { width: nodeWidth(node.name, options), height: nodeHeight });
+    if (node.id === END_NODE) continue;
+    const pseudo = node.activity < 0;
+    graph.setNode(node.id, {
+      width: pseudo ? 24 : nodeWidth(node.name, options),
+      height: pseudo ? 24 : nodeHeight,
+    });
   }
   for (const edge of dfg.edges) {
-    if (edge.source !== edge.target && !isPseudo(edge.source) && !isPseudo(edge.target))
-      graph.setEdge(edge.source, edge.target, {
-        weight: Math.max(1, Math.round(edge.frequency)),
-        width: edgeLabel.width,
-        height: edgeLabel.height,
-        labelpos: "r",
-        labeloffset: 4,
-      });
+    if (edge.source === edge.target || edge.target === END_NODE) continue;
+    const pseudo = isPseudo(edge.source) || isPseudo(edge.target);
+    graph.setEdge(edge.source, edge.target, {
+      weight: pseudo ? 1 : Math.max(1, Math.round(edge.frequency)),
+      width: edgeLabel.width,
+      height: edgeLabel.height,
+      labelpos: "r",
+      labeloffset: 4,
+    });
   }
   dagre.layout(graph);
   const nodes: LayoutNode[] = graph.nodes().map((id) => {
@@ -85,7 +91,7 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     return { id, x: n.x, y: n.y, width: n.width, height: n.height };
   });
   const edges: LayoutEdge[] = dfg.edges.map((edge) => {
-    if (edge.source === edge.target || isPseudo(edge.source) || isPseudo(edge.target))
+    if (edge.source === edge.target || edge.target === END_NODE)
       return { id: edge.id, source: edge.source, target: edge.target, points: [] };
     const e = graph.edge(edge.source, edge.target);
     const out: LayoutEdge = {
@@ -97,105 +103,96 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     if (e && typeof e.x === "number" && typeof e.y === "number") out.label = { x: e.x, y: e.y };
     return out;
   });
-  placeEndpoints(dfg, nodes, edges, rankSeparation);
+  snapStart(dfg, nodes, edges);
+  placeEnd(dfg, nodes, edges, rankSeparation);
   return normaliseBounds(nodes, edges, 20);
 }
 
+function heaviestNeighbour(
+  dfg: Dfg,
+  byId: Map<string, LayoutNode>,
+  from: string | null,
+  to: string | null,
+  pick: (e: DfgEdge) => string,
+): LayoutNode | undefined {
+  let best: LayoutNode | undefined;
+  let bestWeight = -1;
+  for (const e of dfg.edges) {
+    if ((from && e.source !== from) || (to && e.target !== to)) continue;
+    const n = byId.get(pick(e));
+    if (n && e.frequency > bestWeight) {
+      bestWeight = e.frequency;
+      best = n;
+    }
+  }
+  return best;
+}
+
+/** Slide Start over the activity most cases start with; only the marker end of each route moves. */
+function snapStart(dfg: Dfg, nodes: LayoutNode[], edges: LayoutEdge[]): void {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const start = byId.get(START_NODE);
+  const entry = heaviestNeighbour(dfg, byId, START_NODE, null, (e) => e.target);
+  if (!start || !entry) return;
+  start.x = entry.x;
+  for (const e of edges)
+    if (e.source === START_NODE && e.points.length)
+      e.points[0] = { x: start.x, y: start.y + start.height / 2 };
+}
+
 /**
- * Start sits one rank above the top of the drawing, over the activity most cases start with; End
- * sits one rank below, under the activity most cases end with. Their edges are straight runs.
+ * End sits one rank below the drawing under the activity most cases end with. Exits on the bottom
+ * rank run straight down; others leave sideways and follow a lane down the nearer margin, like
+ * the reference tool's dotted end paths. Lanes are staggered so parallel routes stay apart.
  */
-function placeEndpoints(
+function placeEnd(
   dfg: Dfg,
   nodes: LayoutNode[],
   edges: LayoutEdge[],
   rankSeparation: number,
 ): void {
+  if (!dfg.nodes.some((n) => n.id === END_NODE)) return;
   const byId = new Map(nodes.map((n) => [n.id, n]));
-  const activities = nodes.filter((n) => byId.get(n.id) && !isEndpoint(n.id));
+  const activities = nodes.filter((n) => n.id !== START_NODE);
   if (activities.length === 0) return;
-  let minY = Number.POSITIVE_INFINITY;
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
   let maxY = Number.NEGATIVE_INFINITY;
   for (const n of activities) {
-    minY = Math.min(minY, n.y - n.height / 2);
+    minX = Math.min(minX, n.x - n.width / 2);
+    maxX = Math.max(maxX, n.x + n.width / 2);
     maxY = Math.max(maxY, n.y + n.height / 2);
   }
   const size = 24;
-  const heaviest = (pick: (e: DfgEdge) => string, from: string | null, to: string | null) => {
-    let best: LayoutNode | undefined;
-    let bestWeight = -1;
-    for (const e of dfg.edges) {
-      if ((from && e.source !== from) || (to && e.target !== to)) continue;
-      const n = byId.get(pick(e));
-      if (n && e.frequency > bestWeight) {
-        bestWeight = e.frequency;
-        best = n;
-      }
-    }
-    return best ?? (activities[0] as LayoutNode);
-  };
-  const entry = heaviest((e) => e.target, START_NODE, null);
-  const exit = heaviest((e) => e.source, null, END_NODE);
-  const start: LayoutNode = {
-    id: START_NODE,
-    x: entry.x,
-    y: minY - rankSeparation - size / 2,
-    width: size,
-    height: size,
-  };
+  const exit = heaviestNeighbour(dfg, byId, null, END_NODE, (e) => e.source);
   const end: LayoutNode = {
     id: END_NODE,
-    x: exit.x,
+    x: exit?.x ?? (minX + maxX) / 2,
     y: maxY + rankSeparation + size / 2,
     width: size,
     height: size,
   };
-  if (dfg.nodes.some((n) => n.id === START_NODE)) nodes.push(start);
-  if (dfg.nodes.some((n) => n.id === END_NODE)) nodes.push(end);
-  let minX = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY;
-  for (const n of activities) {
-    minX = Math.min(minX, n.x - n.width / 2);
-    maxX = Math.max(maxX, n.x + n.width / 2);
-  }
-  const sides = { left: minX - rankSeparation, right: maxX + rankSeparation };
+  nodes.push(end);
+  const lanes = { left: 0, right: 0 };
+  const LANE = 14;
   for (const e of edges) {
-    const target = byId.get(e.target);
+    if (e.target !== END_NODE) continue;
     const source = byId.get(e.source);
-    if (e.source === START_NODE && target) e.points = detour(start, target, sides, minY, "down");
-    if (e.target === END_NODE && source) e.points = detour(source, end, sides, maxY, "up");
+    if (!source) continue;
+    const bottom = { x: source.x, y: source.y + source.height / 2 };
+    const top = { x: end.x, y: end.y - size / 2 };
+    if (bottom.y >= maxY - 1) {
+      e.points = [bottom, top];
+      continue;
+    }
+    const left = source.x - minX < maxX - source.x;
+    const lane = left ? lanes.left++ : lanes.right++;
+    const x = left
+      ? minX - rankSeparation / 2 - lane * LANE
+      : maxX + rankSeparation / 2 + lane * LANE;
+    const side = { x: source.x + ((left ? -1 : 1) * source.width) / 2, y: source.y };
+    e.points = [side, { x, y: source.y }, { x, y: top.y - rankSeparation / 4 }, top];
   }
-}
-
-/**
- * Straight run when the activity is on the rank next to the marker; otherwise skirt the nearer
- * side of the drawing, the way the reference tool draws its dotted start/end paths.
- */
-function detour(
-  from: LayoutNode,
-  to: LayoutNode,
-  sides: { left: number; right: number },
-  edgeY: number,
-  dir: "down" | "up",
-): { x: number; y: number }[] {
-  const a = { x: from.x, y: from.y + from.height / 2 };
-  const b = { x: to.x, y: to.y - to.height / 2 };
-  const activity = dir === "down" ? to : from;
-  const onEdgeRank =
-    dir === "down"
-      ? activity.y - activity.height / 2 <= edgeY + 1
-      : activity.y + activity.height / 2 >= edgeY - 1;
-  if (onEdgeRank) return [a, b];
-  const side = activity.x - sides.left < sides.right - activity.x ? sides.left : sides.right;
-  const sign = side === sides.left ? -1 : 1;
-  const exitX = activity.x + (sign * activity.width) / 2;
-  return dir === "down"
-    ? [a, { x: side, y: from.y + from.height }, { x: side, y: to.y }, { x: exitX, y: to.y }]
-    : [{ x: exitX, y: from.y }, { x: side, y: from.y }, { x: side, y: to.y - to.height }, b];
-}
-
-function isEndpoint(id: string): boolean {
-  return id === START_NODE || id === END_NODE;
 }
 
 /** dagre reports node extents only; edge control points can lie outside. Re-fit the bounds. */
