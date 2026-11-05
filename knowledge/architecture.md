@@ -6,8 +6,8 @@ pnpm workspace (`pnpm-workspace.yaml`: `packages/*`, `apps/*`).
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `@mukhiya-mining/core` | Framework-free data handling. Only runtime dependency: `@dagrejs/dagre` (layout). |
-| `packages/react` | `@mukhiya-mining/react` | React components. Depends on core (`workspace:*`). Peer deps: `react`, `react-dom` >= 18. |
+| `packages/core` | `@pathminer/core` | Framework-free data handling. Only runtime dependency: `@dagrejs/dagre` (layout). |
+| `packages/react` | `@pathminer/react` | React components. Depends on core (`workspace:*`). Peer deps: `react`, `react-dom` >= 18. |
 | `apps/demo` | `demo` (private) | Vite app with a generated clickstream. |
 | `observations.md` | | Design notes from a reference tool study. |
 
@@ -16,7 +16,7 @@ pnpm workspace (`pnpm-workspace.yaml`: `packages/*`, `apps/*`).
 - `core` has no React and no DOM use. Its functions are pure and can run in a Web Worker.
 - `react` holds state (filters, selection), memoises the derived data, and draws.
 - The renderer is split too: `render/scene.ts` (`buildScene`) is pure and has no DOM. `map/SceneSvg.tsx` is the React twin of `sceneToSvg`.
-- `react` imports only from `@mukhiya-mining/core`.
+- `react` imports only from `@pathminer/core`.
 
 ## Data flow
 
@@ -31,7 +31,7 @@ pnpm workspace (`pnpm-workspace.yaml`: `packages/*`, `apps/*`).
 
 ```mermaid
 flowchart LR
-  subgraph core["@mukhiya-mining/core"]
+  subgraph core["@pathminer/core"]
     PE[ProcessEvent] --> B["EventLogBuilder / buildEventLog"]
     B --> EL[EventLog]
     EL --> AF["applyFilters(filters)"]
@@ -41,7 +41,7 @@ flowchart LR
     LV --> ST["computeActivityStats / computeCaseStats / computeOverview"]
     DFG --> LAY[layoutDfg]
   end
-  subgraph react["@mukhiya-mining/react"]
+  subgraph react["@pathminer/react"]
     LAY --> SC[buildScene]
     SC --> SVG["SceneSvg / sceneToSvg"]
     VAR --> CV[CasesView]

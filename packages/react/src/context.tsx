@@ -1,4 +1,4 @@
-import { applyFilters, type EventLog, type Filter, type LogView } from "@mukhiya-mining/core";
+import { applyFilters, type EventLog, type Filter, type LogView } from "@pathminer/core";
 import {
   type CSSProperties,
   createContext,

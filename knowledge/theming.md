@@ -1,6 +1,6 @@
 # Theming
 
-Source: `packages/react/src/styles.css`. Import it once: `import "@mukhiya-mining/react/styles.css"`.
+Source: `packages/react/src/styles.css`. Import it once: `import "@pathminer/react/styles.css"`.
 
 ## Mechanism
 

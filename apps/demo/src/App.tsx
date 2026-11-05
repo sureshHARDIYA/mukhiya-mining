@@ -1,6 +1,6 @@
-import { type EventLog, formatNumber } from "@mukhiya-mining/core";
-import { ExplorerSkeleton, ProcessExplorer } from "@mukhiya-mining/react";
-import "@mukhiya-mining/react/styles.css";
+import { type EventLog, formatNumber } from "@pathminer/core";
+import { ExplorerSkeleton, ProcessExplorer } from "@pathminer/react";
+import "@pathminer/react/styles.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Job } from "./worker";
 
@@ -57,7 +57,7 @@ export function App() {
       }}
     >
       <header style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <b>mukhiya-mining demo</b>
+        <b>pathminer demo</b>
         <span style={{ display: "inline-flex", gap: 4 }}>
           {DATASETS.map((d) => (
             <button

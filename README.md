@@ -1,8 +1,8 @@
-# mukhiya-mining
+# pathminer
 
-[![CI](https://github.com/sureshHARDIYA/mukhiya-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/sureshHARDIYA/mukhiya-mining/actions/workflows/ci.yml)
-[![npm core](https://img.shields.io/npm/v/%40mukhiya-mining%2Fcore?label=%40mukhiya-mining%2Fcore)](https://www.npmjs.com/package/@mukhiya-mining/core)
-[![npm react](https://img.shields.io/npm/v/%40mukhiya-mining%2Freact?label=%40mukhiya-mining%2Freact)](https://www.npmjs.com/package/@mukhiya-mining/react)
+[![CI](https://github.com/sureshHARDIYA/pathminer/actions/workflows/ci.yml/badge.svg)](https://github.com/sureshHARDIYA/pathminer/actions/workflows/ci.yml)
+[![npm core](https://img.shields.io/npm/v/%40pathminer%2Fcore?label=%40pathminer%2Fcore)](https://www.npmjs.com/package/@pathminer/core)
+[![npm react](https://img.shields.io/npm/v/%40pathminer%2Freact?label=%40pathminer%2Freact)](https://www.npmjs.com/package/@pathminer/react)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Process mining for web applications, as a React + TypeScript library.
@@ -41,14 +41,14 @@ account, one runtime dependency (`@dagrejs/dagre`), and it stays smooth with mil
 
 | Package | What it is |
 | --- | --- |
-| [`@mukhiya-mining/core`](packages/core) | Framework-free data layer: event-log indexing, CSV/JSON adapters, filters, directly-follows graph, variants, statistics, layered layout. Runs in Node, a worker or the browser. |
-| [`@mukhiya-mining/react`](packages/react) | Components: `ProcessExplorer` (all-in-one), `ProcessMap`, `StatisticsView`, `CasesView`, `FilterBar`, `ExplorerSkeleton`, plus `ProcessMiningProvider` and hooks. |
+| [`@pathminer/core`](packages/core) | Framework-free data layer: event-log indexing, CSV/JSON adapters, filters, directly-follows graph, variants, statistics, layered layout. Runs in Node, a worker or the browser. |
+| [`@pathminer/react`](packages/react) | Components: `ProcessExplorer` (all-in-one), `ProcessMap`, `StatisticsView`, `CasesView`, `FilterBar`, `ExplorerSkeleton`, plus `ProcessMiningProvider` and hooks. |
 | [`apps/demo`](apps/demo) | Vite app with a generated clickstream (10k, 100k or 1M sessions) and two anonymised real logs exported from Azure Application Insights. |
 
 ## Install
 
 ```bash
-pnpm add @mukhiya-mining/core @mukhiya-mining/react
+pnpm add @pathminer/core @pathminer/react
 ```
 
 React 18 or 19 is a peer dependency.
@@ -56,9 +56,9 @@ React 18 or 19 is a peer dependency.
 ## Use
 
 ```tsx
-import { buildEventLog, fromJson } from "@mukhiya-mining/core";
-import { ProcessExplorer } from "@mukhiya-mining/react";
-import "@mukhiya-mining/react/styles.css";
+import { buildEventLog, fromJson } from "@pathminer/core";
+import { ProcessExplorer } from "@pathminer/react";
+import "@pathminer/react/styles.css";
 
 // Any rows with a case id, an activity and a timestamp. Here: one row per page view.
 const events = fromJson(rows, {

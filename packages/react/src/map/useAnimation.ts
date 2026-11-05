@@ -1,4 +1,4 @@
-import type { Dfg, LogView } from "@mukhiya-mining/core";
+import type { Dfg, LogView } from "@pathminer/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type AnimationMode,

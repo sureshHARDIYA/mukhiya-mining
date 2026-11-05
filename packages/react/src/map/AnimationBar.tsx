@@ -1,4 +1,4 @@
-import { formatDuration, formatNumber } from "@mukhiya-mining/core";
+import { formatDuration, formatNumber } from "@pathminer/core";
 import type { AnimationMode } from "./animation";
 
 interface Props {

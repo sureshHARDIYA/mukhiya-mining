@@ -1,9 +1,4 @@
-import {
-  formatDateTime,
-  formatDuration,
-  formatNumber,
-  type HistogramBin,
-} from "@mukhiya-mining/core";
+import { formatDateTime, formatDuration, formatNumber, type HistogramBin } from "@pathminer/core";
 import { useId, useRef } from "react";
 import { useElementWidth } from "../shared/useElementWidth";
 

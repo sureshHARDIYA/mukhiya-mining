@@ -1,15 +1,15 @@
 {
-  "name": "@mukhiya-mining/core",
+  "name": "@pathminer/core",
   "version": "0.1.1",
   "description": "Framework-free process-mining core: event-log indexing, filters, directly-follows graphs, variants, statistics and layout.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sureshHARDIYA/mukhiya-mining.git",
+    "url": "git+https://github.com/sureshHARDIYA/pathminer.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/sureshHARDIYA/mukhiya-mining#readme",
-  "bugs": "https://github.com/sureshHARDIYA/mukhiya-mining/issues",
+  "homepage": "https://github.com/sureshHARDIYA/pathminer#readme",
+  "bugs": "https://github.com/sureshHARDIYA/pathminer/issues",
   "keywords": [
     "process-mining",
     "event-log",

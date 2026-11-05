@@ -1,4 +1,4 @@
-import type { DfgEdge, DfgNode } from "@mukhiya-mining/core";
+import type { DfgEdge, DfgNode } from "@pathminer/core";
 
 export type Metric = "frequency" | "performance";
 export type FrequencyShow = "frequency" | "caseFrequency" | "caseCoverage" | "maxRepetitions";

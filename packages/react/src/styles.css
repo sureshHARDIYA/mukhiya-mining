@@ -1,4 +1,4 @@
-/* mukhiya-mining theme tokens. Override any --pm-* on the host element. */
+/* pathminer theme tokens. Override any --pm-* on the host element. */
 .pm-root {
   --pm-bg: #ffffff;
   --pm-fg: #1b2229;

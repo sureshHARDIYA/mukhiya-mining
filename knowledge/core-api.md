@@ -1,6 +1,6 @@
 # core API
 
-Everything exported from `packages/core/src/index.ts` (`@mukhiya-mining/core`). Types from `types.ts` are re-exported (`export * from "./types"`, see data-model.md).
+Everything exported from `packages/core/src/index.ts` (`@pathminer/core`). Types from `types.ts` are re-exported (`export * from "./types"`, see data-model.md).
 
 ## Adapters
 

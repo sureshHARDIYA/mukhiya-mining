@@ -1,6 +1,6 @@
 # Data model
 
-All types are in `packages/core/src/types.ts` and exported from `@mukhiya-mining/core`.
+All types are in `packages/core/src/types.ts` and exported from `@pathminer/core`.
 
 ## AttributeValue
 

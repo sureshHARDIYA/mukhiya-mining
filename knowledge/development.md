@@ -30,7 +30,7 @@ Dev dependencies at the root: Biome ^2.2.0, TypeScript ^5.6.0, tsup ^8.3.0, Vite
 
 ## Tests
 
-`packages/core/test/core.test.ts` (Vitest, imports from `../src`). Groups: `buildEventLog`, `adapters`, `dfg`, `filters`, `variants and statistics`, `layout and format`. Run with `pnpm --filter @mukhiya-mining/core test` or `pnpm test`. There are no tests for the React package.
+`packages/core/test/core.test.ts` (Vitest, imports from `../src`). Groups: `buildEventLog`, `adapters`, `dfg`, `filters`, `variants and statistics`, `layout and format`. Run with `pnpm --filter @pathminer/core test` or `pnpm test`. There are no tests for the React package.
 
 ## Building and publishing
 
@@ -38,20 +38,20 @@ Both packages are ESM with a CJS build (`"type": "module"`, `main` `./dist/index
 
 - core: `tsup src/index.ts --format esm,cjs --dts --sourcemap --clean`
 - react: `tsup src/index.ts --format esm,cjs --dts --sourcemap --clean --external react,react-dom && cp src/styles.css dist/styles.css`. The package `exports` map includes `"./styles.css": "./dist/styles.css"`, and `sideEffects` is `["*.css"]`.
-- `@mukhiya-mining/react` depends on `@mukhiya-mining/core` as `workspace:*`; pnpm rewrites it to the real version on publish. Publish core first.
+- `@pathminer/react` depends on `@pathminer/core` as `workspace:*`; pnpm rewrites it to the real version on publish. Publish core first.
 - Publish steps are not scripted in this repo; use `pnpm publish` from each package after `pnpm build`. (`files` lists `README.md`, but no package-level README exists in the repo.)
 
 ## Workspace aliases in the demo
 
 The demo uses the package sources, not `dist`:
 
-- `apps/demo/vite.config.ts`: `resolve.alias` maps `@mukhiya-mining/core` to `packages/core/src/index.ts`, `@mukhiya-mining/react/styles.css` to `packages/react/src/styles.css`, and `@mukhiya-mining/react` to `packages/react/src/index.ts`. The `styles.css` alias is listed before the bare package alias so it matches first.
-- `apps/demo/tsconfig.json`: `paths` for `@mukhiya-mining/core` and `@mukhiya-mining/react` to the same source entries, `baseUrl: "."`, `noEmit`.
+- `apps/demo/vite.config.ts`: `resolve.alias` maps `@pathminer/core` to `packages/core/src/index.ts`, `@pathminer/react/styles.css` to `packages/react/src/styles.css`, and `@pathminer/react` to `packages/react/src/index.ts`. The `styles.css` alias is listed before the bare package alias so it matches first.
+- `apps/demo/tsconfig.json`: `paths` for `@pathminer/core` and `@pathminer/react` to the same source entries, `baseUrl: "."`, `noEmit`.
 - `pnpm.onlyBuiltDependencies` allows `esbuild` and `@biomejs/biome` install scripts.
 
 ## CI, dependencies and releases
 
 - `.github/workflows/ci.yml`: on every push to `main` and every pull request: `pnpm install --frozen-lockfile`, lint, both package builds, typecheck (react resolves core through `dist`, so build comes first), test, demo build, `pnpm audit --audit-level moderate`.
 - `renovate.json`: Renovate (GitHub app must be installed on the repo) opens grouped non-major updates Monday mornings (Europe/Oslo), auto-merges minor/patch devDependency bumps once CI is green, never touches peer dependencies, raises vulnerability PRs immediately.
-- `.github/workflows/release.yml`: pushing a tag `vX.Y.Z` that equals the version in both `packages/*/package.json` runs the gate, publishes `@mukhiya-mining/core` and `@mukhiya-mining/react` to npm (`--access public`, provenance) and creates a GitHub release with generated notes. Needs the repository secret `NPM_TOKEN` (an npm automation token).
+- `.github/workflows/release.yml`: pushing a tag `vX.Y.Z` that equals the version in both `packages/*/package.json` runs the gate, publishes `@pathminer/core` and `@pathminer/react` to npm (`--access public`, provenance) and creates a GitHub release with generated notes. Needs the repository secret `NPM_TOKEN` (an npm automation token).
 - Release steps: bump both package versions (same number), commit, `git tag vX.Y.Z`, `git push --tags`.

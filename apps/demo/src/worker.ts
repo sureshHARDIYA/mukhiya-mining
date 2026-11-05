@@ -1,9 +1,4 @@
-import {
-  buildEventLog,
-  type EventLog,
-  fromJson,
-  generateSampleEventLog,
-} from "@mukhiya-mining/core";
+import { buildEventLog, type EventLog, fromJson, generateSampleEventLog } from "@pathminer/core";
 
 export type Job = { kind: "sample"; cases: number; seed: number } | { kind: "json"; url: string };
 

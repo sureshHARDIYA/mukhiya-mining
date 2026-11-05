@@ -1,4 +1,4 @@
-import { type Filter, formatDateTime, toMillis } from "@mukhiya-mining/core";
+import { type Filter, formatDateTime, toMillis } from "@pathminer/core";
 import { type CSSProperties, useState } from "react";
 import { useProcessModel } from "../context";
 

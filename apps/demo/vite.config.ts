@@ -5,13 +5,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@mukhiya-mining/core": new URL("../../packages/core/src/index.ts", import.meta.url).pathname,
-      "@mukhiya-mining/react/styles.css": new URL(
-        "../../packages/react/src/styles.css",
-        import.meta.url,
-      ).pathname,
-      "@mukhiya-mining/react": new URL("../../packages/react/src/index.ts", import.meta.url)
+      "@pathminer/core": new URL("../../packages/core/src/index.ts", import.meta.url).pathname,
+      "@pathminer/react/styles.css": new URL("../../packages/react/src/styles.css", import.meta.url)
         .pathname,
+      "@pathminer/react": new URL("../../packages/react/src/index.ts", import.meta.url).pathname,
     },
   },
 });

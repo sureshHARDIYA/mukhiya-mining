@@ -1,4 +1,4 @@
-import type { Dfg, LogView } from "@mukhiya-mining/core";
+import type { Dfg, LogView } from "@pathminer/core";
 import type { Scene } from "../render/scene";
 import { AnimationBar } from "./AnimationBar";
 import { TokenLayer } from "./TokenLayer";

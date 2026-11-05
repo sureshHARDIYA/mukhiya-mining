@@ -1,4 +1,4 @@
-import { caseEvents, type Dfg, END_NODE, type LogView, START_NODE } from "@mukhiya-mining/core";
+import { caseEvents, type Dfg, END_NODE, type LogView, START_NODE } from "@pathminer/core";
 import type { Scene } from "../render/scene";
 
 export type AnimationMode = "realtime" | "synced";

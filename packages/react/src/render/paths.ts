@@ -1,4 +1,4 @@
-import type { LayoutNode } from "@mukhiya-mining/core";
+import type { LayoutNode } from "@pathminer/core";
 
 export interface Point {
   x: number;

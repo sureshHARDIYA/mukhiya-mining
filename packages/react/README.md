@@ -1,4 +1,4 @@
-# @mukhiya-mining/react
+# @pathminer/react
 
 See the workspace README and `knowledge/` folder in the repository root:
-https://github.com/sureshHARDIYA/mukhiya-mining
+https://github.com/sureshHARDIYA/pathminer

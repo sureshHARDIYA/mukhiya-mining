@@ -4,7 +4,7 @@ import {
   formatDuration,
   formatNumber,
   formatPercent,
-} from "@mukhiya-mining/core";
+} from "@pathminer/core";
 
 interface Props {
   item: DfgNode | DfgEdge;

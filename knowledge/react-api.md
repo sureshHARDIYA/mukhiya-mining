@@ -1,9 +1,9 @@
 # react API
 
-Everything exported from `packages/react/src/index.ts` (`@mukhiya-mining/react`). Import the stylesheet once:
+Everything exported from `packages/react/src/index.ts` (`@pathminer/react`). Import the stylesheet once:
 
 ```ts
-import "@mukhiya-mining/react/styles.css";
+import "@pathminer/react/styles.css";
 ```
 
 ## Controlled and uncontrolled state

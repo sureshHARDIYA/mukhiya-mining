@@ -9,7 +9,7 @@ import {
   formatDuration,
   formatNumber,
   formatPercent,
-} from "@mukhiya-mining/core";
+} from "@pathminer/core";
 import { type CSSProperties, useMemo, useState } from "react";
 import { useProcessModel } from "../context";
 import { VirtualList } from "../shared/VirtualList";

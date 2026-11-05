@@ -24,7 +24,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      # react's typecheck resolves @mukhiya-mining/core through its dist, so build first.
+      # react's typecheck resolves @pathminer/core through its dist, so build first.
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test

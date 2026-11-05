@@ -127,10 +127,10 @@ importers:
 
   apps/demo:
     dependencies:
-      '@mukhiya-mining/core':
+      '@pathminer/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@mukhiya-mining/react':
+      '@pathminer/react':
         specifier: workspace:*
         version: link:../../packages/react
       react:
@@ -174,7 +174,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@mukhiya-mining/core':
+      '@pathminer/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

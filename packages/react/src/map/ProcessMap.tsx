@@ -9,7 +9,7 @@ import {
   layoutDfg,
   START_NODE,
   selectEdges,
-} from "@mukhiya-mining/core";
+} from "@pathminer/core";
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useProcessModel } from "../context";
 import { defaultShow, type Metric, metricValue, type Show } from "../render/scales";

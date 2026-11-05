@@ -1,15 +1,15 @@
 {
-  "name": "@mukhiya-mining/react",
+  "name": "@pathminer/react",
   "version": "0.1.1",
   "description": "React components for exploring process event logs: process map, statistics, cases and filters.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sureshHARDIYA/mukhiya-mining.git",
+    "url": "git+https://github.com/sureshHARDIYA/pathminer.git",
     "directory": "packages/react"
   },
-  "homepage": "https://github.com/sureshHARDIYA/mukhiya-mining#readme",
-  "bugs": "https://github.com/sureshHARDIYA/mukhiya-mining/issues",
+  "homepage": "https://github.com/sureshHARDIYA/pathminer#readme",
+  "bugs": "https://github.com/sureshHARDIYA/pathminer/issues",
   "keywords": [
     "process-mining",
     "event-log",
@@ -51,7 +51,7 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@mukhiya-mining/core": "workspace:*"
+    "@pathminer/core": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

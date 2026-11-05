@@ -10,7 +10,7 @@ import {
   type LayoutEdge,
   type LayoutNode,
   START_NODE,
-} from "@mukhiya-mining/core";
+} from "@pathminer/core";
 import {
   arrowHead,
   arrowSize,
