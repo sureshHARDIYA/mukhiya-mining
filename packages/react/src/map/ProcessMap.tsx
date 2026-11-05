@@ -33,7 +33,7 @@ export interface ProcessMapProps {
   showRail?: boolean | undefined;
   /** Show the "Animate" button; replay moves one token per case along the paths. */
   animation?: boolean | undefined;
-  /** Max cases replayed at once; larger views are sampled evenly. */
+  /** Max cases replayed at once. Real time takes the busiest stretch; synced mode samples evenly. */
   animationLimit?: number | undefined;
   className?: string | undefined;
   style?: CSSProperties | undefined;
@@ -243,10 +243,9 @@ function usePopover(
     const anchor = anchorFor(scene, selectedId);
     const onFilter = described.activities.length
       ? () => {
-          setFilters([
-            ...filters,
-            { type: "activity", mode: "keep", activities: described.activities },
-          ]);
+          const next: Filter = { type: "activity", mode: "keep", activities: described.activities };
+          const exists = filters.some((f) => JSON.stringify(f) === JSON.stringify(next));
+          setFilters(exists ? filters : [...filters, next]);
           setSelection(null);
         }
       : undefined;

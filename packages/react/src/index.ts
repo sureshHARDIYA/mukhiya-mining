@@ -9,6 +9,15 @@ export {
   useSelection,
 } from "./context";
 export { describeFilter, FilterBar, type FilterBarProps } from "./filters/FilterBar";
+export {
+  type AnimationMode,
+  activityDensity,
+  buildTracks,
+  type Sampling,
+  type Track,
+  type Tracks,
+  tokenPosition,
+} from "./map/animation";
 export type { Detail } from "./map/MapRail";
 export { ProcessMap, type ProcessMapProps } from "./map/ProcessMap";
 export { type ExplorerTab, ProcessExplorer, type ProcessExplorerProps } from "./ProcessExplorer";

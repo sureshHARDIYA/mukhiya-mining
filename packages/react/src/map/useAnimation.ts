@@ -21,7 +21,7 @@ export interface AnimationState {
   total: number;
 }
 
-/** Playback clock for the token layer. Time advances in a RAF loop; React only sees ~10 updates/s. */
+/** Playback clock for the token layer. Time lives in a ref; progress state re-renders only the bar. */
 export function useAnimation(
   view: LogView,
   dfg: Dfg,

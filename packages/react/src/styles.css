@@ -17,6 +17,9 @@
   --pm-perf-head: #b8642c;
   --pm-perf-body: #f8e6d6;
   --pm-bar: #5b8fc4;
+  --pm-token: #f6b21b;
+  --pm-token-stroke: #5a3b00;
+  --pm-active-path: #c0392b;
   --pm-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --pm-radius: 8px;
   --pm-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -50,6 +53,9 @@
   --pm-perf-head: #9a5324;
   --pm-perf-body: #3f2c1f;
   --pm-bar: #6fa0d8;
+  --pm-token: #ffc43d;
+  --pm-token-stroke: #3a2600;
+  --pm-active-path: #e8604f;
 }
 .pm-explorer {
   display: flex;
@@ -389,8 +395,8 @@
   color: var(--pm-muted);
 }
 .pm-token {
-  fill: #f6b21b;
-  stroke: #5a3b00;
+  fill: var(--pm-token);
+  stroke: var(--pm-token-stroke);
   stroke-width: 1;
   transition: opacity 0.25s ease;
 }
@@ -428,12 +434,12 @@
 }
 .pm-map.is-animating .pm-edge.is-active .pm-edge-stroke {
   opacity: 1;
-  stroke: #c0392b;
+  stroke: var(--pm-active-path);
 }
 .pm-map.is-animating .pm-edge.is-active .pm-edge-arrow {
   opacity: 1;
-  fill: #c0392b;
-  stroke: #c0392b;
+  fill: var(--pm-active-path);
+  stroke: var(--pm-active-path);
 }
 .pm-anim-timeline {
   position: relative;

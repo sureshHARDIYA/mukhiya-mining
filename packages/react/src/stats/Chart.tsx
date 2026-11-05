@@ -4,7 +4,7 @@ import {
   formatNumber,
   type HistogramBin,
 } from "@mukhiya-mining/core";
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import { useElementWidth } from "../shared/useElementWidth";
 
 export type AxisKind = "time" | "duration" | "count";
@@ -25,6 +25,7 @@ function formatAxis(value: number, axis: AxisKind): string {
 /** Time series draw as an area, distributions as bars. Drawn at pixel size so text never stretches. */
 export function Chart({ bins, axis, title, height = 190 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const gradientId = useId();
   const W = useElementWidth(ref);
   const H = height;
   const padL = 48;
@@ -46,7 +47,7 @@ export function Chart({ bins, axis, title, height = 190 }: Props) {
       <svg width={W} height={H} role="img" aria-label={title}>
         <title>{title}</title>
         <defs>
-          <linearGradient id="pm-chart-fill" x1="0" x2="0" y1="0" y2="1">
+          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0" stopColor="var(--pm-bar)" stopOpacity=".55" />
             <stop offset="1" stopColor="var(--pm-bar)" stopOpacity=".08" />
           </linearGradient>
@@ -66,7 +67,7 @@ export function Chart({ bins, axis, title, height = 190 }: Props) {
           <>
             <polygon
               points={`${x(0.5)},${y(0)} ${points} ${x(bins.length - 0.5)},${y(0)}`}
-              fill="url(#pm-chart-fill)"
+              fill={`url(#${gradientId})`}
             />
             <polyline
               points={points}

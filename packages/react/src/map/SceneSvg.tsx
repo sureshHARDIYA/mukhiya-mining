@@ -129,7 +129,8 @@ const Node = memo(function Node({
   if (n.kind !== "activity") {
     return (
       <g
-        className={`pm-node-g pm-node-${n.kind}`}
+        className={`pm-node-g pm-node pm-node-${n.kind}`}
+        data-id={n.id}
         style={{ transform: `translate(${n.x}px, ${n.y}px)` }}
       >
         <circle

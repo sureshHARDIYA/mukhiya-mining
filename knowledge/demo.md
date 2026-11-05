@@ -21,7 +21,9 @@ pnpm --filter demo dev --port 5180    # another port
 | Status line | Shows sessions, events and generate + index time, plus total time including transfer. |
 | Case "Open" button | `onCaseOpen` shows `alert("Open case <id> in the host app")`. |
 
-The explorer is rendered with `height="calc(100vh - 110px)"`.
+The explorer is rendered with `height="calc(100vh - 110px)"` and `map={{ animation: true, animationLimit: 4000 }}`, so the map toolbar shows "Animate" and the replay may use up to 4000 cases.
+
+While the worker builds the log (`log === null`), the demo renders `<ExplorerSkeleton message={status} height="calc(100vh - 110px)" colorScheme={...} />` with the status line as its message.
 
 ## Worker pattern
 
@@ -39,7 +41,7 @@ Buffers are moved, not copied (zero copy). The `activities`, `cases` strings and
 
 Source: `packages/core/src/sample.ts`. Session = case, page = activity. Each session has a device (`mobile` 58 %, `desktop` 42 %) and a channel (`organic` 45 %, `paid` 30 %, `email` 15 %, `direct` 10 %) as attributes.
 
-A session starts on `Landing` at a random time in the window (default 30 days from 2026-10-01). Each page: dwell time is uniform in the range below (seconds); the gap before the next page is `random()^3 * 90 s` (mostly near zero); the next page is drawn by weight. `EXIT` ends the session (it is not emitted as an event). A session also ends after `maxEventsPerCase` (default 25) events.
+A session starts on `Landing` at a random time in the window (default 30 days from 2026-10-01). The start has a weekly and daily rhythm (`sessionOffset`): weekends are weighted 0.55 against 1 on weekdays (2026-10-01 is a Thursday), and the hour is weighted `0.15` plus peaks around 12:00 and 20:00 (rejection sampling), so the animation shows quiet nights and busy evenings. Each page: dwell time is uniform in the range below (seconds); the gap before the next page is `random() ** 3 * 90_000` ms (mostly near zero, up to 90 s); the next page is drawn by weight. `EXIT` ends the session (it is not emitted as an event). A session also ends after `maxEventsPerCase` (default 25) events.
 
 | Page | Dwell (s) | Next page: probability |
 | --- | --- | --- |

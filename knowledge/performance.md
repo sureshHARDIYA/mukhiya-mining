@@ -16,6 +16,9 @@
 | Split recomputation | `ProcessMap` | The DFG walk over events is memoised on `[view, activities detail]`. The paths slider only runs `selectEdges`, then layout and scene. |
 | Virtualised lists | `VirtualList` | Fixed row height; only visible rows plus overscan are in the DOM. Used for the case table, variants list and cases list. |
 | No spread over big arrays | `StatisticsView` cases page | Uses `reduce` instead of `Math.max(...rows)`, which would overflow the argument limit at a million rows. |
+| Imperative token layer | `TokenLayer` | Tokens are a fixed pool of `<circle>` elements whose `cx`, `cy` and `opacity` are set directly each frame from a `timeRef`; no React render per token. |
+| CSS-only map dimming | `.pm-map.is-animating` | The map is faded by CSS. The only per-frame DOM change on nodes and edges is toggling `is-active` for ids whose state changed. |
+| Pixel-size chart | `Chart` + `useElementWidth` | Redraws on container resize (`ResizeObserver`) at real pixel width; no stretching. |
 | Pure core | `layoutDfg`, `buildScene` | Run anywhere, including a worker. |
 
 ## Measurements
@@ -34,6 +37,10 @@ Stress run on 2026-11-05, Apple Silicon laptop, generated sample log (see demo.m
 | `computeActivityStats` | 367 ms |
 | `computeCaseStats` | 621 ms |
 | `computeOverview` | 1590 ms |
+
+### Token replay
+
+Measured in the browser demo: replay runs at 61 fps with 1,500 to 4,000 tokens. The limit is `animationLimit` (default 1,500; the demo uses 4,000). `buildTracks` with `"window"` sampling scans all kept cases once (sort by start time plus a sliding window), so it grows with the number of kept cases, not with the limit.
 
 ### Browser demo (Vite dev, Chromium)
 

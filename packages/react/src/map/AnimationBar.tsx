@@ -100,7 +100,7 @@ export function AnimationBar(p: Props) {
       </select>
       <span className="pm-anim-info">
         {p.sampled < p.total
-          ? `${formatNumber(p.sampled)} of ${formatNumber(p.total)} cases`
+          ? `${formatNumber(p.sampled)} of ${formatNumber(p.total)} cases${p.mode === "realtime" ? " (busiest period)" : ""}`
           : `${formatNumber(p.total)} cases`}
       </span>
       <button type="button" className="pm-btn" onClick={p.onExit}>
