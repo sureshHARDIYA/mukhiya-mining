@@ -59,7 +59,7 @@ export function arrowHead(from: Point, tip: Point, size: number): string {
 
 /** Head length grows with the stroke so thick paths get the big, calm arrows of the reference. */
 export function arrowSize(strokeWidth: number): number {
-  return 9 + strokeWidth * 1.9;
+  return 7 + strokeWidth * 1.6;
 }
 
 export function arrowHalfWidth(size: number): number {
@@ -67,24 +67,28 @@ export function arrowHalfWidth(size: number): number {
 }
 
 /**
- * Route an edge the way a layered diagram reads best: leave the source downward, enter the target
- * downward, with one smooth S-curve. Falls back to the spline through the layout points for
- * backward edges (target above source), where the router's detour is needed. Forward edges ignore
- * the router's bends on purpose: one gentle curve reads better than a faithful wobble.
+ * Route an edge along the layout's points: a straight line between neighbouring ranks, a gentle
+ * spline where the router detours around nodes. Collinear bends are dropped so direct edges stay
+ * straight even when dagre emits a midpoint.
  */
 export function routePath(points: readonly Point[]): { d: string; points: Point[] } {
-  if (points.length < 2) return { d: smoothPath(points), points: [...points] };
-  const start = points[0] as Point;
-  const end = points[points.length - 1] as Point;
-  const dy = end.y - start.y;
-  if (dy < 24) return { d: smoothPath(points), points: [...points] };
-  const pull = Math.max(16, Math.min(dy * 0.42, 110));
-  const c1 = { x: start.x, y: start.y + pull };
-  const c2 = { x: end.x, y: end.y - pull };
-  return {
-    d: `M${start.x} ${start.y} C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}`,
-    points: [start, end],
-  };
+  const kept = dropCollinear(points);
+  return { d: smoothPath(kept), points: kept };
+}
+
+function dropCollinear(points: readonly Point[]): Point[] {
+  if (points.length < 3) return [...points];
+  const out: Point[] = [points[0] as Point];
+  for (let i = 1; i < points.length - 1; i++) {
+    const a = out[out.length - 1] as Point;
+    const b = points[i] as Point;
+    const c = points[i + 1] as Point;
+    const cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    const len = Math.hypot(c.x - a.x, c.y - a.y) || 1;
+    if (Math.abs(cross) / len > 2) out.push(b);
+  }
+  out.push(points[points.length - 1] as Point);
+  return out;
 }
 
 /** Midpoint of a polyline by arc length, with the local direction. */

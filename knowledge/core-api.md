@@ -292,8 +292,8 @@ interface Layout { nodes: LayoutNode[]; edges: LayoutEdge[]; width: number; heig
 
 - `nodeWidth = max(minNodeWidth, min(maxNodeWidth, label.length * charWidth + 28))`.
 - Start and End pseudo nodes are 24 x 24.
-- Uses dagre with the greedy acyclicer, margin 20; edge weight is `max(1, round(frequency))`.
-- In `"TB"` direction Start is pinned centred above the activities and End centred below them (one rank gap), as in the reference tool; their edges become straight source-bottom to target-top runs that the renderer curves.
+- Uses dagre with the greedy acyclicer, margin 20; edge weight is `max(1, round(frequency))`. Only activities go into dagre, so Start/End cannot pull the spine sideways.
+- Start is placed one rank above the drawing over the activity most cases start with; End one rank below under the activity most cases end with (as in the reference tool). Their edges are a straight run when the activity is on the adjacent rank, otherwise a detour around the nearer side of the drawing (`detour`), which the renderer splines.
 - Self loops get `points: []`; the renderer draws them.
 - Node `x`/`y` are centres. Bounds are re-fitted so everything starts at the 20 px margin, with 60 px extra on the right for loops and labels.
 - Pure function; safe in a worker.

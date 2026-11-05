@@ -19,7 +19,6 @@ import {
   routePath,
   selfLoop,
   shortenEnd,
-  smoothPath,
 } from "./paths";
 import {
   colorAt,
@@ -170,21 +169,17 @@ function loopGeometry(source: LayoutNode, size: number): Geometry {
   };
 }
 
-function routeGeometry(points: Point[], pseudo: boolean, size: number, width: number): Geometry {
+function routeGeometry(points: Point[], size: number, width: number): Geometry {
   const first = points[0] as Point;
   const tip = points[points.length - 1] as Point;
-  // Dashed start/end paths keep the router's detour so they skirt the graph instead of crossing it.
-  const forward = !pseudo && tip.y - first.y >= 24;
   // Stop the stroke a little inside the head so the two overlap and read as one shape.
-  const trimmed = forward
-    ? [...points.slice(0, -1), { x: tip.x, y: tip.y - size * 0.7 }]
-    : shortenEnd(points, size * 0.7);
-  const route = pseudo ? { d: smoothPath(trimmed), points: trimmed } : routePath(trimmed);
+  const trimmed = shortenEnd(points, size * 0.7);
+  const route = routePath(trimmed);
   const tail = route.points.length > 1 ? (route.points[route.points.length - 2] as Point) : tip;
   const mid = midpoint(route.points);
   return {
     path: route.d,
-    arrow: arrowHead(forward ? { x: tip.x, y: tip.y - 10 } : tail, tip, size),
+    arrow: arrowHead(tail, tip, size),
     labelAt: { x: mid.point.x + width / 2 + 6, y: mid.point.y + 4 },
     from: first,
     to: tip,
@@ -209,7 +204,7 @@ function sceneEdge(
     if (!source) return null;
     geometry = loopGeometry(source, size);
   } else {
-    geometry = routeGeometry(layoutEdge.points, pseudo, size, width);
+    geometry = routeGeometry(layoutEdge.points, size, width);
   }
   const label =
     pseudo && edge.source === START_NODE
@@ -282,7 +277,7 @@ function edgeMarkup(e: SceneEdge, selected: boolean): string {
 function markerMarkup(n: SceneNode): string {
   const glyph =
     n.kind === "start"
-      ? `<path d="M${n.x - 4} ${n.y - 5} L${n.x + 5} ${n.y} L${n.x - 4} ${n.y + 5} Z" fill="var(--pm-marker)"/>`
+      ? `<path d="M${n.x - 5} ${n.y - 4} L${n.x + 5} ${n.y - 4} L${n.x} ${n.y + 5} Z" fill="var(--pm-marker)"/>`
       : `<rect x="${n.x - 4}" y="${n.y - 4}" width="8" height="8" rx="1" fill="var(--pm-marker)"/>`;
   return `<g class="pm-node pm-node-${n.kind}" data-id="${esc(n.id)}"><circle cx="${n.x}" cy="${n.y}" r="${n.width / 2}" fill="var(--pm-marker-bg)" stroke="var(--pm-marker)" stroke-width="1.5"/>${glyph}</g>`;
 }

@@ -205,7 +205,7 @@ hexToRgb(hex), mix(a, b, t), colorAt(scale, t), labelColor(t), edgeWidth(t), nor
 
 - `colorAt` samples a three-stop scale in sRGB; `NaN` is treated as 0.
 - `labelColor(t)`: white text when `t > 0.38`, else `#1b2229`.
-- `edgeWidth(t) = 1.2 + 8 * clamp(t)`.
+- `edgeWidth(t) = 1.2 + 5 * clamp(t)`.
 - `normalise(value, max, show)`: `value / max` capped at 1; square root for performance shows; `NaN` if `max <= 0` or value is `NaN`.
 
 ### Scene (`scene.ts`)
@@ -226,7 +226,7 @@ formatValue(value: number, show: Show): string
 
 ### Paths (`paths.ts`)
 
-Geometry helpers used by the scene: `Point`, `smoothPath(points)` (Catmull-Rom to cubic Bezier), `shortenEnd(points, by)`, `arrowHead(from, tip, size)`, `arrowSize(strokeWidth) = 9 + strokeWidth * 1.9`, `arrowHalfWidth(size)`, `routePath(points)`, `midpoint(points)` (arc-length midpoint and angle), `selfLoop(node)`.
+Geometry helpers used by the scene: `Point`, `smoothPath(points)` (Catmull-Rom to cubic Bezier), `shortenEnd(points, by)`, `arrowHead(from, tip, size)`, `arrowSize(strokeWidth) = 7 + strokeWidth * 1.6`, `arrowHalfWidth(size)`, `routePath(points)` (drops collinear bends, then straight line for two points or Catmull-Rom spline through the layout points; no forced vertical tangents, so a direct edge is a straight diagonal as in the reference tool), `midpoint(points)` (arc-length midpoint and angle), `selfLoop(node)`.
 
 ## ExplorerSkeleton
 

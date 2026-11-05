@@ -140,7 +140,7 @@ const Node = memo(function Node({
           strokeWidth="1.5"
         />
         {n.kind === "start" ? (
-          <path d="M-4 -5 L5 0 L-4 5 Z" fill="var(--pm-marker)" />
+          <path d="M-5 -4 L5 -4 L0 5 Z" fill="var(--pm-marker)" />
         ) : (
           <rect x="-4" y="-4" width="8" height="8" rx="1" fill="var(--pm-marker)" />
         )}

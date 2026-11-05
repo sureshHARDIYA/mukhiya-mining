@@ -81,7 +81,7 @@ export function labelColor(t: number): string {
 }
 
 export function edgeWidth(t: number): number {
-  return 1.2 + 8 * (Number.isNaN(t) ? 0 : Math.min(1, Math.max(0, t)));
+  return 1.2 + 5 * (Number.isNaN(t) ? 0 : Math.min(1, Math.max(0, t)));
 }
 
 /** Normalised 0..1 position of a value within [0, max]. Square root for durations keeps outliers readable. */
