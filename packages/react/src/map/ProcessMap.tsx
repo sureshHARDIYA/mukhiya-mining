@@ -1,0 +1,250 @@
+import {
+  computeDfg,
+  type Dfg,
+  type DfgEdge,
+  type DfgNode,
+  END_NODE,
+  type Filter,
+  layoutDfg,
+  START_NODE,
+  selectEdges,
+} from "@mukhiya-mining/core";
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useProcessModel } from "../context";
+import { defaultShow, type Metric, metricValue, type Show } from "../render/scales";
+import { buildScene, type Scene } from "../render/scene";
+import { useControllable } from "../shared/useControllable";
+import { type Detail, MapRail } from "./MapRail";
+import { Popover } from "./Popover";
+import { SceneSvg } from "./SceneSvg";
+import { usePanZoom } from "./usePanZoom";
+
+export interface ProcessMapProps {
+  metric?: Metric | undefined;
+  defaultMetric?: Metric | undefined;
+  onMetricChange?: ((metric: Metric) => void) | undefined;
+  show?: Show | undefined;
+  detail?: Detail | undefined;
+  defaultDetail?: Detail | undefined;
+  onDetailChange?: ((detail: Detail) => void) | undefined;
+  secondary?: Show | null | undefined;
+  showRail?: boolean | undefined;
+  className?: string | undefined;
+  style?: CSSProperties | undefined;
+}
+
+const DEFAULT_DETAIL: Detail = { activities: 1, paths: 0.5 };
+
+export function ProcessMap(props: ProcessMapProps) {
+  const { view, selection, setSelection, filters, setFilters, permissions } = useProcessModel();
+  const [metric, setMetric] = useControllable(
+    props.metric,
+    props.defaultMetric ?? "frequency",
+    props.onMetricChange,
+  );
+  const [show, setShow] = useState<Show>(props.show ?? defaultShow(metric));
+  const [detail, setDetail] = useControllable(
+    props.detail,
+    props.defaultDetail ?? DEFAULT_DETAIL,
+    props.onDetailChange,
+  );
+  const [secondary, setSecondary] = useState<Show | null>(props.secondary ?? null);
+  const effectiveShow = props.show ?? show;
+
+  // Path detail only reselects edges; the expensive walk over events depends on activities alone.
+  const fullDfg = useMemo(
+    () => computeDfg(view, { activityDetail: detail.activities }),
+    [view, detail.activities],
+  );
+  const dfg = useMemo(
+    () => ({ ...fullDfg, edges: selectEdges(fullDfg.edges, detail.paths) }),
+    [fullDfg, detail.paths],
+  );
+  const layout = useMemo(() => layoutDfg(dfg), [dfg]);
+  const scene = useMemo(
+    () =>
+      buildScene(dfg, layout, { metric, show: effectiveShow, ...(secondary ? { secondary } : {}) }),
+    [dfg, layout, metric, effectiveShow, secondary],
+  );
+  const maxNode = useMemo(
+    () =>
+      Math.max(
+        0,
+        ...dfg.nodes
+          .filter((n) => n.activity >= 0)
+          .map((n) => metricValue(n, effectiveShow))
+          .filter((v) => !Number.isNaN(v)),
+      ),
+    [dfg, effectiveShow],
+  );
+
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const pz = usePanZoom();
+  // Re-fit only when the drawing changes size, not on every metric change.
+  const sceneWidth = Math.round(scene.width);
+  const sceneHeight = Math.round(scene.height);
+  const fitView = pz.fit;
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (el)
+      fitView(
+        { width: sceneWidth, height: sceneHeight },
+        { width: el.clientWidth, height: el.clientHeight },
+      );
+  }, [sceneWidth, sceneHeight, fitView]);
+
+  const onMetric = useCallback(
+    (m: Metric) => {
+      setMetric(m);
+      setShow(defaultShow(m));
+      setSecondary(null);
+    },
+    [setMetric],
+  );
+  const onNodeClick = useCallback(
+    (id: string) => setSelection({ kind: "activity", id }),
+    [setSelection],
+  );
+  const onEdgeClick = useCallback(
+    (id: string) => setSelection({ kind: "path", id }),
+    [setSelection],
+  );
+  const onPointerUp = useCallback(() => {
+    if (!pz.onPointerUp()) setSelection(null);
+  }, [pz, setSelection]);
+
+  const selectedId =
+    selection?.kind === "activity" || selection?.kind === "path" ? selection.id : null;
+  const popover = usePopover(
+    dfg,
+    scene,
+    selectedId,
+    pz.transform,
+    filters,
+    setFilters,
+    setSelection,
+  );
+
+  return (
+    <div className={`pm-map${props.className ? ` ${props.className}` : ""}`} style={props.style}>
+      <div ref={viewportRef} className={`pm-map-viewport${pz.panning ? " is-panning" : ""}`}>
+        <svg
+          role="img"
+          aria-label="Process map"
+          onPointerDown={pz.onPointerDown}
+          onPointerMove={pz.onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onWheel={pz.onWheel}
+        >
+          <SceneSvg
+            scene={scene}
+            transform={pz.transform}
+            selectedId={selectedId}
+            onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
+          />
+        </svg>
+        <div className="pm-map-toolbar">
+          <span>{Math.round(pz.transform.k * 100)}%</span>
+          <button
+            type="button"
+            className="pm-btn"
+            onClick={() =>
+              viewportRef.current &&
+              pz.fit(scene, {
+                width: viewportRef.current.clientWidth,
+                height: viewportRef.current.clientHeight,
+              })
+            }
+          >
+            Fit
+          </button>
+          <span>
+            {dfg.nodes.length - 2} activities · {dfg.edges.length} paths
+          </span>
+        </div>
+        {view.caseCount === 0 ? (
+          <div className="pm-map-empty">No cases match the current filters.</div>
+        ) : null}
+        {popover ? <Popover {...popover} canFilter={permissions.canFilter} /> : null}
+      </div>
+      {props.showRail === false ? null : (
+        <MapRail
+          detail={detail}
+          onDetail={setDetail}
+          metric={metric}
+          onMetric={onMetric}
+          show={effectiveShow}
+          onShow={setShow}
+          secondary={secondary}
+          onSecondary={setSecondary}
+          maxNode={maxNode}
+        />
+      )}
+    </div>
+  );
+}
+
+function nodeName(dfg: Dfg, id: string): string {
+  if (id === START_NODE) return "Start";
+  if (id === END_NODE) return "End";
+  return dfg.nodes.find((n) => n.id === id)?.name ?? id;
+}
+
+function anchorFor(scene: Scene, id: string): { x: number; y: number } {
+  const node = scene.nodes.find((n) => n.id === id);
+  if (node) return { x: node.x + node.width / 2, y: node.y - node.height / 2 };
+  const edge = scene.edges.find((e) => e.id === id);
+  return edge ? { x: edge.labelAt.x, y: edge.labelAt.y } : { x: 0, y: 0 };
+}
+
+function describeSelection(
+  dfg: Dfg,
+  id: string,
+): { item: DfgNode | DfgEdge; title: string; activities: string[] } | null {
+  const node = dfg.nodes.find((n) => n.id === id && n.activity >= 0);
+  if (node) return { item: node, title: node.name, activities: [node.name] };
+  const edge = dfg.edges.find((e) => e.id === id);
+  if (!edge) return null;
+  const ends = [nodeName(dfg, edge.source), nodeName(dfg, edge.target)];
+  return {
+    item: edge,
+    title: ends.join(" → "),
+    activities: ends.filter((n) => n !== "Start" && n !== "End"),
+  };
+}
+
+function usePopover(
+  dfg: Dfg,
+  scene: Scene,
+  selectedId: string | null,
+  t: { x: number; y: number; k: number },
+  filters: Filter[],
+  setFilters: (f: Filter[]) => void,
+  setSelection: (s: null) => void,
+) {
+  return useMemo(() => {
+    if (!selectedId) return null;
+    const described = describeSelection(dfg, selectedId);
+    if (!described) return null;
+    const anchor = anchorFor(scene, selectedId);
+    const onFilter = described.activities.length
+      ? () => {
+          setFilters([
+            ...filters,
+            { type: "activity", mode: "keep", activities: described.activities },
+          ]);
+          setSelection(null);
+        }
+      : undefined;
+    return {
+      item: described.item,
+      title: described.title,
+      x: anchor.x * t.k + t.x + 14,
+      y: anchor.y * t.k + t.y,
+      onFilter,
+      onClose: () => setSelection(null),
+    };
+  }, [dfg, scene, selectedId, t, filters, setFilters, setSelection]);
+}

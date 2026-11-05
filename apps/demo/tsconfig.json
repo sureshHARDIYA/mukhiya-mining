@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "@mukhiya-mining/core": ["../../packages/core/src/index.ts"],
+      "@mukhiya-mining/react": ["../../packages/react/src/index.ts"]
+    },
+    "baseUrl": "."
+  },
+  "include": ["src"]
+}
