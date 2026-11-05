@@ -85,7 +85,7 @@ Needs a provider. Renders the SVG viewport, a toolbar (zoom %, "Fit", a summary 
 | --- | --- | --- |
 | `metric` / `defaultMetric` / `onMetricChange` | `Metric` = `"frequency" \| "performance"` | Default `"frequency"`. |
 | `show` | `Show` | Value displayed. If set, it overrides the internal choice (the rail select then has no effect). Default derived from metric. |
-| `detail` / `defaultDetail` / `onDetailChange` | `Detail` = `{ activities: number; paths: number }` (0..1) | Default `{ activities: 1, paths: 0.5 }`. |
+| `detail` / `defaultDetail` / `onDetailChange` | `Detail` = `{ activities: number; paths: number }` (0..1) | Default `{ activities: 1, paths: 0.2 }`. |
 | `secondary` | `Show \| null` | **Initial** secondary metric only (read once into state). |
 | `showRail` | `boolean` | `false` hides the rail. |
 | `animation` | `boolean` | Shows the "Animate" toolbar button. See [Animation](#animation). Default off. |
@@ -227,6 +227,10 @@ formatValue(value: number, show: Show): string
 ### Paths (`paths.ts`)
 
 Geometry helpers used by the scene: `Point`, `smoothPath(points)` (Catmull-Rom to cubic Bezier), `shortenEnd(points, by)`, `arrowHead(from, tip, size)`, `arrowSize(strokeWidth) = 7 + strokeWidth * 1.6`, `arrowHalfWidth(size)`, `routePath(points)` (drops collinear bends, then straight line for two points or Catmull-Rom spline through the layout points; no forced vertical tangents, so a direct edge is a straight diagonal as in the reference tool), `midpoint(points)` (arc-length midpoint and angle), `selfLoop(node)`.
+
+## Export (`map/exportMap.ts`)
+
+`standaloneSvg(scene, host)` inlines the host's resolved `--pm-*` colours and a background rect into `sceneToSvg` output. `downloadSvg(scene, host, name?)`, `downloadPng(scene, host, name?, scale = 2)` (rasterised through an `<img>` and canvas) and `printPdf(scene, host, name?)` (a print window sized to the drawing; the user saves as PDF) back the toolbar's "Export…" select, shown when `permissions.canExport` is true. Exports use the current scene, i.e. the current activity and path detail and metric.
 
 ## ExplorerSkeleton
 

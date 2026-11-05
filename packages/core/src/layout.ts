@@ -15,6 +15,8 @@ export interface LayoutEdge {
   target: string;
   /** Polyline points from source to target; a self loop has none and is drawn by the renderer. */
   points: { x: number; y: number }[];
+  /** Label anchor reserved by the layout (right of the edge), when the layout placed one. */
+  label?: { x: number; y: number };
 }
 
 export interface Layout {
@@ -33,6 +35,8 @@ export interface LayoutOptions {
   charWidth?: number;
   nodeSeparation?: number;
   rankSeparation?: number;
+  /** Space reserved beside each edge for its label, so labels do not sit on nodes or other edges. */
+  edgeLabel?: { width: number; height: number };
 }
 
 export function nodeWidth(label: string, options: LayoutOptions = {}): number {
@@ -42,7 +46,13 @@ export function nodeWidth(label: string, options: LayoutOptions = {}): number {
 
 /** Layered layout for a DFG. Pure function of the graph; safe to run in a worker. */
 export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
-  const { direction = "TB", nodeHeight = 40, nodeSeparation = 40, rankSeparation = 56 } = options;
+  const {
+    direction = "TB",
+    nodeHeight = 40,
+    nodeSeparation = 40,
+    rankSeparation = 56,
+    edgeLabel = { width: 40, height: 14 },
+  } = options;
   const graph = new dagre.graphlib.Graph({ multigraph: false });
   graph.setGraph({
     rankdir: direction,
@@ -61,7 +71,13 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
   }
   for (const edge of dfg.edges) {
     if (edge.source !== edge.target && !isPseudo(edge.source) && !isPseudo(edge.target))
-      graph.setEdge(edge.source, edge.target, { weight: Math.max(1, Math.round(edge.frequency)) });
+      graph.setEdge(edge.source, edge.target, {
+        weight: Math.max(1, Math.round(edge.frequency)),
+        width: edgeLabel.width,
+        height: edgeLabel.height,
+        labelpos: "r",
+        labeloffset: 4,
+      });
   }
   dagre.layout(graph);
   const nodes: LayoutNode[] = graph.nodes().map((id) => {
@@ -72,7 +88,14 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     if (edge.source === edge.target || isPseudo(edge.source) || isPseudo(edge.target))
       return { id: edge.id, source: edge.source, target: edge.target, points: [] };
     const e = graph.edge(edge.source, edge.target);
-    return { id: edge.id, source: edge.source, target: edge.target, points: e?.points ?? [] };
+    const out: LayoutEdge = {
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      points: e?.points ?? [],
+    };
+    if (e && typeof e.x === "number" && typeof e.y === "number") out.label = { x: e.x, y: e.y };
+    return out;
   });
   placeEndpoints(dfg, nodes, edges, rankSeparation);
   return normaliseBounds(nodes, edges, 20);
@@ -199,10 +222,15 @@ function normaliseBounds(nodes: LayoutNode[], edges: LayoutEdge[], margin: numbe
     n.x += dx;
     n.y += dy;
   }
-  for (const e of edges)
+  for (const e of edges) {
     for (const p of e.points) {
       p.x += dx;
       p.y += dy;
     }
+    if (e.label) {
+      e.label.x += dx;
+      e.label.y += dy;
+    }
+  }
   return { nodes, edges, width: maxX - minX + 2 * margin, height: maxY - minY + 2 * margin };
 }

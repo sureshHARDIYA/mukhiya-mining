@@ -22,6 +22,7 @@ export {
   tokenPosition,
   tracksFor,
 } from "./map/animation";
+export { downloadPng, downloadSvg, printPdf, standaloneSvg } from "./map/exportMap";
 export type { Detail } from "./map/MapRail";
 export { ProcessMap, type ProcessMapProps } from "./map/ProcessMap";
 export { type ExplorerTab, ProcessExplorer, type ProcessExplorerProps } from "./ProcessExplorer";

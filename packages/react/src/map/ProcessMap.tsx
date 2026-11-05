@@ -15,6 +15,7 @@ import { useProcessModel } from "../context";
 import { defaultShow, type Metric, metricValue, type Show } from "../render/scales";
 import { buildScene, type Scene } from "../render/scene";
 import { useControllable } from "../shared/useControllable";
+import { downloadPng, downloadSvg, printPdf } from "./exportMap";
 import { MapAnimation } from "./MapAnimation";
 import { type Detail, MapRail } from "./MapRail";
 import { Popover } from "./Popover";
@@ -39,7 +40,7 @@ export interface ProcessMapProps {
   style?: CSSProperties | undefined;
 }
 
-const DEFAULT_DETAIL: Detail = { activities: 1, paths: 0.5 };
+const DEFAULT_DETAIL: Detail = { activities: 1, paths: 0.2 };
 
 export function ProcessMap(props: ProcessMapProps) {
   const { view, selection, setSelection, filters, setFilters, permissions } = useProcessModel();
@@ -164,6 +165,16 @@ export function ProcessMap(props: ProcessMapProps) {
           }
           summary={`${formatNumber(view.caseCount)} of ${formatNumber(view.log.cases.length)} cases · ${dfg.nodes.length - 2} activities · ${dfg.edges.length} paths`}
           onAnimate={props.animation && !animating ? () => setAnimating(true) : undefined}
+          onExport={
+            permissions.canExport
+              ? (kind) => {
+                  const host = viewportRef.current;
+                  if (kind === "png") void downloadPng(scene, host);
+                  else if (kind === "svg") downloadSvg(scene, host);
+                  else printPdf(scene, host);
+                }
+              : undefined
+          }
         />
         {view.caseCount === 0 ? (
           <div className="pm-map-empty">No cases match the current filters.</div>
@@ -260,16 +271,20 @@ function usePopover(
   }, [dfg, scene, selectedId, t, filters, setFilters, setSelection]);
 }
 
+export type ExportKind = "png" | "svg" | "pdf";
+
 function MapToolbar({
   zoom,
   onFit,
   summary,
   onAnimate,
+  onExport,
 }: {
   zoom: number;
   onFit: () => void;
   summary: string;
   onAnimate: (() => void) | undefined;
+  onExport: ((kind: ExportKind) => void) | undefined;
 }) {
   return (
     <div className="pm-map-toolbar">
@@ -282,6 +297,19 @@ function MapToolbar({
         <button type="button" className="pm-btn" onClick={onAnimate}>
           Animate
         </button>
+      ) : null}
+      {onExport ? (
+        <select
+          className="pm-select pm-map-export"
+          value=""
+          onChange={(e) => e.target.value && onExport(e.target.value as ExportKind)}
+          aria-label="Export map"
+        >
+          <option value="">Export…</option>
+          <option value="png">PNG image</option>
+          <option value="svg">SVG vector</option>
+          <option value="pdf">PDF (print)</option>
+        </select>
       ) : null}
     </div>
   );

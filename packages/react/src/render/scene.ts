@@ -169,7 +169,12 @@ function loopGeometry(source: LayoutNode, size: number): Geometry {
   };
 }
 
-function routeGeometry(points: Point[], size: number, width: number): Geometry {
+function routeGeometry(
+  points: Point[],
+  size: number,
+  width: number,
+  label: Point | undefined,
+): Geometry {
   const first = points[0] as Point;
   const tip = points[points.length - 1] as Point;
   // Stop the stroke a little inside the head so the two overlap and read as one shape.
@@ -180,7 +185,9 @@ function routeGeometry(points: Point[], size: number, width: number): Geometry {
   return {
     path: route.d,
     arrow: arrowHead(tail, tip, size),
-    labelAt: { x: mid.point.x + width / 2 + 6, y: mid.point.y + 4 },
+    labelAt: label
+      ? { x: label.x - 16, y: label.y + 4 }
+      : { x: mid.point.x + width / 2 + 6, y: mid.point.y + 4 },
     from: first,
     to: tip,
   };
@@ -204,7 +211,7 @@ function sceneEdge(
     if (!source) return null;
     geometry = loopGeometry(source, size);
   } else {
-    geometry = routeGeometry(layoutEdge.points, size, width);
+    geometry = routeGeometry(layoutEdge.points, size, width, layoutEdge.label);
   }
   const label =
     pseudo && edge.source === START_NODE

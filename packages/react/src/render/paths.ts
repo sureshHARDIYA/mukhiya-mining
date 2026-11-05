@@ -5,27 +5,28 @@ export interface Point {
   y: number;
 }
 
-/** Catmull-Rom spline through the layout points, emitted as cubic Béziers. */
-export function smoothPath(points: readonly Point[]): string {
+/**
+ * Polyline with rounded corners: straight runs joined by quadratic arcs, like a dot spline. Never
+ * overshoots a bend, which keeps detours and back edges calm.
+ */
+export function smoothPath(points: readonly Point[], radius = 28): string {
   if (points.length === 0) return "";
-  if (points.length === 1) return `M${points[0]?.x} ${points[0]?.y}`;
-  if (points.length === 2) {
-    const [a, b] = points as [Point, Point];
-    return `M${a.x} ${a.y} L${b.x} ${b.y}`;
+  const first = points[0] as Point;
+  if (points.length === 1) return `M${first.x} ${first.y}`;
+  let d = `M${first.x} ${first.y}`;
+  for (let i = 1; i < points.length - 1; i++) {
+    const a = points[i - 1] as Point;
+    const b = points[i] as Point;
+    const c = points[i + 1] as Point;
+    const inLen = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    const outLen = Math.hypot(c.x - b.x, c.y - b.y) || 1;
+    const r = Math.min(radius, inLen / 2, outLen / 2);
+    const p = { x: b.x - ((b.x - a.x) / inLen) * r, y: b.y - ((b.y - a.y) / inLen) * r };
+    const q = { x: b.x + ((c.x - b.x) / outLen) * r, y: b.y + ((c.y - b.y) / outLen) * r };
+    d += ` L${p.x} ${p.y} Q${b.x} ${b.y} ${q.x} ${q.y}`;
   }
-  let d = `M${(points[0] as Point).x} ${(points[0] as Point).y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[Math.max(0, i - 1)] as Point;
-    const p1 = points[i] as Point;
-    const p2 = points[i + 1] as Point;
-    const p3 = points[Math.min(points.length - 1, i + 2)] as Point;
-    const c1x = p1.x + (p2.x - p0.x) / 6;
-    const c1y = p1.y + (p2.y - p0.y) / 6;
-    const c2x = p2.x - (p3.x - p1.x) / 6;
-    const c2y = p2.y - (p3.y - p1.y) / 6;
-    d += ` C${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${p2.y}`;
-  }
-  return d;
+  const last = points[points.length - 1] as Point;
+  return `${d} L${last.x} ${last.y}`;
 }
 
 /** Pull the last point back along the final segment so the arrowhead tip lands on the node edge. */
