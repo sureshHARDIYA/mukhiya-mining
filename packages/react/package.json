@@ -1,6 +1,6 @@
 {
   "name": "@mukhiya-mining/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React components for exploring process event logs: process map, statistics, cases and filters.",
   "license": "MIT",
   "repository": {
