@@ -3,7 +3,7 @@ import { toMillis } from "./time";
 import type { EventLog, Filter, LogView } from "./types";
 import { computeVariants } from "./variants";
 
-/** Filters are ANDed. Each one only narrows the case mask, so order does not matter. */
+/** Filters are ANDed. Each one only narrows the case mask. Order matters only for `variants`, which ranks variants within the cases left by the filters before it. */
 export function applyFilters(log: EventLog, filters: readonly Filter[]): LogView {
   let view = fullView(log);
   for (const filter of filters) view = applyFilter(view, filter);

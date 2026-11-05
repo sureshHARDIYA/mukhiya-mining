@@ -94,4 +94,4 @@ filters, performance first. Items marked **Assumption** or **Unknown** were not 
 Keep: map with frequency/performance encoding, activities/paths sliders, node/edge popover with "filter this",
 statistics tables with inline bars, variants → cases → case timeline drill-down, zoom/pan/fit.
 Drop: dataset versioning, recipes, TimeWarp, animation replay, resource/role views, complex filter builder.
-Add (web-app specific): session = case, page/action = activity, drop-off (end activity) highlighting.
+Add (web-app specific): session = case, page/action = activity, end frequency per page in the node popover (a drop-off highlight on the map is planned, not built).

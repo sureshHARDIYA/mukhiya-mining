@@ -10,7 +10,7 @@ export class SlotAccumulator {
   readonly caseFrequency: Uint32Array;
   readonly maxRepetitions: Uint32Array;
   private readonly lastCase: Int32Array;
-  private readonly runLength: Uint32Array;
+  private readonly countInCase: Uint32Array;
   private readonly durations: Float64Array[];
   private readonly durationCount: Uint32Array;
 
@@ -19,7 +19,7 @@ export class SlotAccumulator {
     this.caseFrequency = new Uint32Array(slots);
     this.maxRepetitions = new Uint32Array(slots);
     this.lastCase = new Int32Array(slots).fill(-1);
-    this.runLength = new Uint32Array(slots);
+    this.countInCase = new Uint32Array(slots);
     this.durations = new Array(slots);
     this.durationCount = new Uint32Array(slots);
   }
@@ -29,12 +29,12 @@ export class SlotAccumulator {
     if ((this.lastCase[slot] as number) !== caseId) {
       this.lastCase[slot] = caseId;
       this.caseFrequency[slot] = (this.caseFrequency[slot] as number) + 1;
-      this.runLength[slot] = 1;
+      this.countInCase[slot] = 1;
     } else {
-      this.runLength[slot] = (this.runLength[slot] as number) + 1;
+      this.countInCase[slot] = (this.countInCase[slot] as number) + 1;
     }
-    if ((this.runLength[slot] as number) > (this.maxRepetitions[slot] as number)) {
-      this.maxRepetitions[slot] = this.runLength[slot] as number;
+    if ((this.countInCase[slot] as number) > (this.maxRepetitions[slot] as number)) {
+      this.maxRepetitions[slot] = this.countInCase[slot] as number;
     }
     if (!Number.isNaN(duration)) this.pushDuration(slot, duration);
   }
