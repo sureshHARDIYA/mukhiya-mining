@@ -36,6 +36,7 @@ async function build(job: Job): Promise<EventLog> {
       caseId: "caseId",
       activity: "activity",
       timestamp: "timestamp",
+      endTimestamp: "endTimestamp",
       resource: "resource",
       attributes: ["kind", "browser", "os"],
     }),

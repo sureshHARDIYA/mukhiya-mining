@@ -12,6 +12,8 @@ export interface Step {
 export interface Track {
   caseId: number;
   steps: Step[];
+  /** Log time spent on the Start and End hops. */
+  approach: number;
   start: number;
   end: number;
 }
@@ -27,41 +29,86 @@ export interface Tracks {
   total: number;
 }
 
-/** Log-time the token spends entering from Start and leaving to End. */
-const APPROACH_MS = 15_000;
-/** Web logs have near-zero gaps between pages; stretch hops so tokens travel instead of teleport. */
-const MIN_TRAVEL_MS = 20_000;
-
 export type Sampling = "window" | "spread";
 
+/** Log-time stretches applied to every track, so hops stay visible at any playback speed. */
+export interface Stretch {
+  /** Minimum log time between one step's end and the next step's start. */
+  travel: number;
+  /** Log time the token spends entering from Start and leaving to End. */
+  approach: number;
+}
+
+export interface CaseSelection {
+  ids: number[];
+  /** Raw log-time span of the selected cases: wall span, or longest case for synced mode. */
+  span: number;
+  syncedSpan: number;
+  total: number;
+}
+
 /**
- * One track per sampled case, projected onto the activities shown in the DFG.
- * "window" takes the `limit` consecutive cases (by start time) that span the shortest time, i.e. the
- * busiest stretch of the log, so a real-time replay shows many cases at once;
- * "spread" takes every n-th case, which suits synchronised starts.
+ * Pick the cases to replay. "window" takes the `limit` consecutive cases (by start time) that span
+ * the shortest time, i.e. the busiest stretch of the log, so a real-time replay shows many cases at
+ * once; "spread" takes every n-th case, which suits synchronised starts.
  */
+export function selectCases(
+  view: LogView,
+  limit = 1500,
+  sampling: Sampling = "spread",
+): CaseSelection {
+  const { log } = view;
+  const all: number[] = [];
+  for (let c = 0; c < log.cases.length; c++) if (view.caseMask[c] === 1) all.push(c);
+  let ids = all;
+  if (sampling === "window") {
+    all.sort((a, b) => (log.caseStartTime[a] as number) - (log.caseStartTime[b] as number));
+    const offset = densestWindow(all, log.caseStartTime, limit);
+    ids = all.slice(offset, offset + limit);
+  } else if (all.length > limit) {
+    const stride = Math.ceil(all.length / limit);
+    ids = all.filter((_, i) => i % stride === 0);
+  }
+  let start = Number.POSITIVE_INFINITY;
+  let end = Number.NEGATIVE_INFINITY;
+  let longest = 0;
+  for (const c of ids) {
+    const s = log.caseStartTime[c] as number;
+    const e = log.caseEndTime[c] as number;
+    if (s < start) start = s;
+    if (e > end) end = e;
+    if (e - s > longest) longest = e - s;
+  }
+  return { ids, span: Math.max(0, end - start), syncedSpan: longest, total: all.length };
+}
+
+const DEFAULT_STRETCH: Stretch = { travel: 20_000, approach: 15_000 };
+
+/** One track per selected case, projected onto the activities shown in the DFG. */
 export function buildTracks(
   view: LogView,
   dfg: Dfg,
   limit = 1500,
   sampling: Sampling = "spread",
+  stretch: Stretch = DEFAULT_STRETCH,
 ): Tracks {
-  const { log } = view;
+  const selection = selectCases(view, limit, sampling);
+  return tracksFor(view, dfg, selection, stretch);
+}
+
+export function tracksFor(
+  view: LogView,
+  dfg: Dfg,
+  selection: CaseSelection,
+  stretch: Stretch,
+): Tracks {
   const hidden = new Set(dfg.hiddenActivities);
-  const ids: number[] = [];
-  for (let c = 0; c < log.cases.length; c++) if (view.caseMask[c] === 1) ids.push(c);
-  let offset = 0;
-  if (sampling === "window") {
-    ids.sort((a, b) => (log.caseStartTime[a] as number) - (log.caseStartTime[b] as number));
-    offset = densestWindow(ids, log.caseStartTime, limit);
-  }
-  const stride = sampling === "window" ? 1 : Math.max(1, Math.ceil(ids.length / limit));
   const tracks: Track[] = [];
   let timeStart = Number.POSITIVE_INFINITY;
   let timeEnd = Number.NEGATIVE_INFINITY;
   let maxDuration = 0;
-  for (let i = offset; i < ids.length && tracks.length < limit; i += stride) {
-    const track = buildTrack(view, ids[i] as number, hidden);
+  for (const id of selection.ids) {
+    const track = buildTrack(view, id, hidden, stretch);
     if (!track) continue;
     tracks.push(track);
     if (track.start < timeStart) timeStart = track.start;
@@ -69,7 +116,14 @@ export function buildTracks(
     if (track.end - track.start > maxDuration) maxDuration = track.end - track.start;
   }
   tracks.sort((a, b) => a.start - b.start);
-  return { tracks, timeStart, timeEnd, maxDuration, sampled: tracks.length, total: ids.length };
+  return {
+    tracks,
+    timeStart,
+    timeEnd,
+    maxDuration,
+    sampled: tracks.length,
+    total: selection.total,
+  };
 }
 
 /** Index into `sorted` where the `limit` consecutive cases with the smallest start-time span begin. */
@@ -89,7 +143,12 @@ function densestWindow(sorted: number[], startTime: Float64Array, limit: number)
   return best;
 }
 
-function buildTrack(view: LogView, caseId: number, hidden: Set<number>): Track | null {
+function buildTrack(
+  view: LogView,
+  caseId: number,
+  hidden: Set<number>,
+  stretch: Stretch,
+): Track | null {
   const { log } = view;
   const [from, to] = caseEvents(log, caseId);
   const steps: Step[] = [];
@@ -99,9 +158,9 @@ function buildTrack(view: LogView, caseId: number, hidden: Set<number>): Track |
     if (hidden.has(a)) continue;
     const previous = steps[steps.length - 1];
     let start = (log.eventStart[e] as number) + shift;
-    if (previous && start - previous.end < MIN_TRAVEL_MS) {
-      shift += previous.end + MIN_TRAVEL_MS - start;
-      start = previous.end + MIN_TRAVEL_MS;
+    if (previous && start - previous.end < stretch.travel) {
+      shift += previous.end + stretch.travel - start;
+      start = previous.end + stretch.travel;
     }
     const rawEnd = log.eventEnd[e] as number;
     const end = Number.isNaN(rawEnd) ? start : rawEnd + shift;
@@ -110,7 +169,13 @@ function buildTrack(view: LogView, caseId: number, hidden: Set<number>): Track |
   if (steps.length === 0) return null;
   const first = steps[0] as Step;
   const last = steps[steps.length - 1] as Step;
-  return { caseId, steps, start: first.start - APPROACH_MS, end: last.end + APPROACH_MS };
+  return {
+    caseId,
+    steps,
+    approach: stretch.approach,
+    start: first.start - stretch.approach,
+    end: last.end + stretch.approach,
+  };
 }
 
 export interface Point {
@@ -183,7 +248,7 @@ export function tokenPosition(track: Track, t: number, g: Geometry): TokenPlace 
   const steps = track.steps;
   const first = steps[0] as Step;
   if (t < first.start)
-    return travelling(g, START_NODE, first.node, (t - track.start) / APPROACH_MS);
+    return travelling(g, START_NODE, first.node, (t - track.start) / track.approach);
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i] as Step;
     if (t <= step.end) return dwelling(g, step.node);
@@ -192,7 +257,7 @@ export function tokenPosition(track: Track, t: number, g: Geometry): TokenPlace 
       return travelling(g, step.node, next.node, (t - step.end) / (next.start - step.end));
   }
   const last = steps[steps.length - 1] as Step;
-  return travelling(g, last.node, END_NODE, (t - last.end) / APPROACH_MS);
+  return travelling(g, last.node, END_NODE, (t - last.end) / track.approach);
 }
 
 /** Number of active tracks per time bin over [origin, origin + span]; drawn behind the timeline. */
@@ -217,6 +282,7 @@ export function synced(track: Track): Track {
   const offset = track.start;
   return {
     caseId: track.caseId,
+    approach: track.approach,
     start: 0,
     end: track.end - offset,
     steps: track.steps.map((s) => ({ node: s.node, start: s.start - offset, end: s.end - offset })),

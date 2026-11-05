@@ -49,10 +49,11 @@ fades. Turn it on with a prop; the toolbar then shows an "Animate" button.
 <ProcessExplorer log={log} map={{ animation: true, animationLimit: 4000 }} />
 ```
 
-Two modes: real time (the busiest window of `animationLimit` cases, default 1500, at a speed of
-1x to 2000x real time, default 20x) and synchronised starts (cases sampled evenly, all starting
-at 0). The bar has play/pause, a seek timeline with an activity density curve, a clock and a speed
-slider. See `knowledge/react-api.md`. While a log is loading, show `<ExplorerSkeleton />`.
+Two modes: real time (the busiest window of `animationLimit` cases, default 1500) and
+synchronised starts (cases sampled evenly, all starting at 0). The speed slider sets how long the
+whole timeline takes to play (10 s to 10 min, default 1 min), so a 90-day log and a 2-hour log
+replay equally well; hops are stretched so each takes about half a second on screen. The bar has
+play/pause, a seek timeline with an activity density curve, a clock and the speed slider. See `knowledge/react-api.md`. While a log is loading, show `<ExplorerSkeleton />`.
 
 ## Performance
 

@@ -27,7 +27,7 @@ pnpm workspace (`pnpm-workspace.yaml`: `packages/*`, `apps/*`).
 5. `layoutDfg(dfg)` positions nodes and routes edges (dagre).
 6. `buildScene(dfg, layout, options)` resolves colours and geometry into a `Scene`.
 7. `SceneSvg` (or `sceneToSvg`) emits SVG. Activity nodes and edges carry `data-id` (the node id or the edge id `source>target`); in `SceneSvg` the Start/End markers do not (`sceneToSvg` gives them one).
-8. Optional animation (`ProcessMap animation`): `buildTracks(view, dfg, limit, sampling)` turns kept cases into tracks; `sampleGeometry(scene)` samples each edge path into a polyline; each frame `tokenPosition(track, t, geometry)` gives a point and the node or edge id it is on. See below.
+8. Optional animation (`ProcessMap animation`): `selectCases(view, limit, sampling)` picks the cases and `tracksFor(view, dfg, selection, stretch)` turns them into tracks (hops stretched to stay visible at the chosen speed); `sampleGeometry(scene)` samples each edge path into a polyline; each frame `tokenPosition(track, t, geometry)` gives a point and the node or edge id it is on. See below.
 
 ```mermaid
 flowchart LR
@@ -56,7 +56,7 @@ flowchart LR
 | --- | --- |
 | `ProcessMiningProvider` | `view = applyFilters(log, filters)`, memoised on `[log, filters]`. |
 | `ProcessMap` | `computeDfg(view, {activityDetail})` → `selectEdges(edges, detail.paths)` → `layoutDfg` → `buildScene`. |
-| `MapAnimation` (inside `ProcessMap`, only while animating) | `useAnimation`: `buildTracks` (memoised on view, dfg, limit, mode), `activityDensity`. `TokenLayer`: `sampleGeometry` (memoised on scene). |
+| `MapAnimation` (inside `ProcessMap`, only while animating) | `useAnimation`: `selectCases` (memoised on view, limit, mode), `tracksFor` (memoised on selection, dfg, factor), `activityDensity`. `TokenLayer`: `sampleGeometry` (memoised on scene). |
 | `StatisticsView` | `computeOverview`, `computeActivityStats` or `computeCaseStats` per page. |
 | `CasesView` | `computeVariants(view)`; case detail reads the log arrays directly. |
 
@@ -64,9 +64,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  LV[LogView + Dfg] --> BT["buildTracks(limit, sampling)"]
+  LV[LogView + Dfg] --> BT["selectCases + tracksFor"]
   BT --> TR[Track per case]
-  TR --> UA["useAnimation: mode, factor, clock, density"]
+  TR --> UA["useAnimation: mode, duration, clock, density"]
   SC[Scene] --> SG["sampleGeometry (edge polylines)"]
   UA -- "timeRef (log time)" --> TL["TokenLayer: RAF loop"]
   TR --> TL

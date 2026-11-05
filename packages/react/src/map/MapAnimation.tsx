@@ -39,8 +39,9 @@ export function MapAnimation({ view, dfg, scene, transform, limit, host, onExit 
         progress={anim.progress}
         onSeek={anim.seek}
         time={anim.time}
+        duration={anim.duration}
+        onDuration={anim.setDuration}
         factor={anim.factor}
-        onFactor={anim.setFactor}
         density={anim.density}
         sampled={anim.sampled}
         total={anim.total}

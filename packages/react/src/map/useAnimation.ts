@@ -1,6 +1,13 @@
 import type { Dfg, LogView } from "@mukhiya-mining/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type AnimationMode, activityDensity, buildTracks, synced, type Track } from "./animation";
+import {
+  type AnimationMode,
+  activityDensity,
+  selectCases,
+  synced,
+  type Track,
+  tracksFor,
+} from "./animation";
 
 export interface AnimationState {
   mode: AnimationMode;
@@ -10,9 +17,11 @@ export interface AnimationState {
   progress: number;
   seek: (p: number) => void;
   time: number;
-  /** Playback speed as a multiple of real time. */
+  /** Wall-clock seconds the whole timeline takes to play; the speed control sets this. */
+  duration: number;
+  setDuration: (seconds: number) => void;
+  /** Log ms advanced per wall ms, derived from `duration` and the raw span. */
   factor: number;
-  setFactor: (f: number) => void;
   span: number;
   timeRef: React.MutableRefObject<number>;
   tracks: Track[];
@@ -22,6 +31,11 @@ export interface AnimationState {
 }
 
 /** Playback clock for the token layer. Time lives in a ref; progress state re-renders only the bar. */
+/** Wall-clock time a hop must take on screen, so tokens travel instead of teleport. */
+const TRAVEL_WALL_MS = 500;
+const APPROACH_WALL_MS = 400;
+export const DEFAULT_DURATION_S = 60;
+
 export function useAnimation(
   view: LogView,
   dfg: Dfg,
@@ -30,14 +44,25 @@ export function useAnimation(
 ): AnimationState {
   const [mode, setMode] = useState<AnimationMode>("realtime");
   const [playing, setPlaying] = useState(false);
-  const [factor, setFactor] = useState(20);
+  const [duration, setDuration] = useState(DEFAULT_DURATION_S);
   const [progress, setProgress] = useState(0);
   const timeRef = useRef(0);
 
+  const selection = useMemo(
+    () => (enabled ? selectCases(view, limit, mode === "realtime" ? "window" : "spread") : null),
+    [view, enabled, limit, mode],
+  );
+  const rawSpan = !selection ? 1 : mode === "synced" ? selection.syncedSpan : selection.span;
+  const factor = Math.max(1, rawSpan / (duration * 1000));
   const built = useMemo(
     () =>
-      enabled ? buildTracks(view, dfg, limit, mode === "realtime" ? "window" : "spread") : null,
-    [view, dfg, enabled, limit, mode],
+      selection
+        ? tracksFor(view, dfg, selection, {
+            travel: TRAVEL_WALL_MS * factor,
+            approach: APPROACH_WALL_MS * factor,
+          })
+        : null,
+    [view, dfg, selection, factor],
   );
   const tracks = useMemo(() => {
     if (!built) return [];
@@ -95,8 +120,9 @@ export function useAnimation(
     progress,
     seek,
     time: origin + progress * span,
+    duration,
+    setDuration,
     factor,
-    setFactor,
     span,
     timeRef,
     tracks,

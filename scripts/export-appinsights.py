@@ -40,6 +40,7 @@ def query(app: str) -> list[dict]:
 
 
 def convert(rows: list[dict]) -> list[dict]:
+    """Page views are instants; a view lasts until the session's next event (time on page)."""
     out = []
     for r in rows:
         page = r["Type"] == "AppPageViews"
@@ -47,11 +48,15 @@ def convert(rows: list[dict]) -> list[dict]:
             "caseId": anon(r["SessionId"]),
             "activity": norm(r["Path"]) if page else r["Name"],
             "timestamp": r["TimeGenerated"],
+            "endTimestamp": r["TimeGenerated"],
             "resource": anon(r["UserId"]) if r.get("UserId") else None,
             "kind": "page" if page else "event",
             "browser": r.get("ClientBrowser") or "",
             "os": r.get("ClientOS") or "",
         })
+    for e, nxt in zip(out, out[1:]):
+        if e["caseId"] == nxt["caseId"] and e["kind"] == "page":
+            e["endTimestamp"] = nxt["timestamp"]
     return out
 
 

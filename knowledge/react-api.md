@@ -265,11 +265,15 @@ Only the components' props matter to hosts. The animation helpers below are **no
 type AnimationMode = "realtime" | "synced";
 type Sampling = "window" | "spread";
 interface Step { node: string; start: number; end: number }            // node = String(activityId)
-interface Track { caseId: number; steps: Step[]; start: number; end: number }
+interface Track { caseId: number; steps: Step[]; approach: number; start: number; end: number }
+interface Stretch { travel: number; approach: number }                  // log ms: min hop time, Start/End hop time
+interface CaseSelection { ids: number[]; span: number; syncedSpan: number; total: number }
 interface Tracks { tracks: Track[]; timeStart: number; timeEnd: number; maxDuration: number; sampled: number; total: number }
 interface TokenPlace extends Point { on: string }                       // node id while dwelling, edge id while travelling
 
-buildTracks(view: LogView, dfg: Dfg, limit = 1500, sampling: Sampling = "spread"): Tracks
+selectCases(view: LogView, limit = 1500, sampling: Sampling = "spread"): CaseSelection
+tracksFor(view: LogView, dfg: Dfg, selection: CaseSelection, stretch: Stretch): Tracks
+buildTracks(view, dfg, limit = 1500, sampling = "spread", stretch = { travel: 20_000, approach: 15_000 }): Tracks // selectCases + tracksFor
 tokenPosition(track: Track, t: number, g: Geometry): TokenPlace | null  // null when the case is not active at t
 activityDensity(tracks: readonly Track[], origin: number, span: number, bins = 160): number[]
 synced(track: Track): Track                                              // shifts a track to start at 0
@@ -280,8 +284,9 @@ sampleGeometry(scene: Scene, samples = 24): Geometry                     // poly
 
 - One track per kept case (`view.caseMask`), projected onto the activities shown in the DFG (hidden activities are skipped). A case with no visible step is dropped.
 - `Sampling` picks which cases: `"window"` sorts cases by start time and takes the `limit` consecutive cases with the smallest start-time span (`densestWindow`, the busiest stretch); `"spread"` takes every `ceil(n / limit)`-th case.
-- Web logs have near-zero gaps between pages, so hops are stretched: a step starts at least `MIN_TRAVEL_MS` (20 s) after the previous step ends, and later steps shift with it.
-- A track starts `APPROACH_MS` (15 s) before its first step (token travels Start to first activity) and ends `APPROACH_MS` after the last step (last activity to End). Times are log time in ms.
+- `selectCases` also returns the raw span of the chosen cases (`span`: first start to last end; `syncedSpan`: longest case), which `useAnimation` uses to derive the playback factor before tracks are stretched.
+- Web logs have near-zero gaps between pages, so hops are stretched: a step starts at least `stretch.travel` after the previous step ends, and later steps shift with it.
+- A track starts `stretch.approach` before its first step (token travels Start to first activity) and ends `stretch.approach` after the last step (last activity to End). Times are log time in ms. `useAnimation` sets both from the factor so a hop takes about 0.5 s and the Start/End hops 0.4 s on screen at any speed.
 - `tokenPosition`: before the first step the token is on the `Start>first` edge; during a step on the node; between steps on the `from>to` edge (progress is linear in time, interpolated along the sampled polyline, or a straight line if the edge has no points); after the last step on `last>End`. `on` is the id of that node or edge. If the geometry has no such node or edge the result is `null`.
 - `activityDensity` counts active tracks per bin; the bar draws it behind the timeline.
 
@@ -294,7 +299,8 @@ useAnimation(view: LogView, dfg: Dfg, enabled: boolean, limit = 1500): Animation
 | Field | Meaning |
 | --- | --- |
 | `mode` / `setMode` | `"realtime"` (default; uses `"window"` sampling, log time) or `"synced"` (uses `"spread"` sampling, every track shifted to 0, sorted by end). |
-| `factor` / `setFactor` | Speed as a multiple of real time. Default `20`. Log time advances by `frame dt * factor`. |
+| `duration` / `setDuration` | Wall-clock seconds the whole raw timeline takes to play. Default `60`. |
+| `factor` | `max(1, rawSpan / (duration * 1000))`: log ms per wall ms. Log time advances by `frame dt * factor`. Tracks are rebuilt when it changes (cheap: at most `limit` cases). |
 | `playing` / `togglePlay` | Play or pause. Pressing play at the end rewinds to 0. |
 | `progress` / `seek(p)` | Position 0..1 on the timeline. |
 | `time` | `origin + progress * span`: log time (real time) or elapsed ms (synced). |
@@ -308,7 +314,7 @@ The clock runs in `requestAnimationFrame`; React state (`progress`) updates ever
 
 Play/pause, timeline (density area behind a range slider, 0..1000), clock (real time: time of day plus weekday, day and month; synced: elapsed duration), speed slider, mode select ("Real time", "Synchronise case starts"), a case count (`X of Y cases` when sampled, else `Y cases`) and "Exit".
 
-- The speed slider is logarithmic: `factor = round(MIN_FACTOR * (MAX_FACTOR / MIN_FACTOR) ** x)`, `MIN_FACTOR = 1`, `MAX_FACTOR = 2000`, slider position `x` in 0..1. The factor is shown as `×N` (one decimal below 100).
+- The speed slider is logarithmic over replay length: `duration = round(SLOW_S * (FAST_S / SLOW_S) ** x)`, `SLOW_S = 600`, `FAST_S = 10`, slider position `x` in 0..1. The bar shows the replay length (for example `1 m`); the real-time factor is in the tooltip.
 
 ### TokenLayer
 
@@ -320,4 +326,4 @@ The map keeps its metric colours and is faded by CSS only (see theming.md); noth
 
 `MapRail`, `Popover`, `SceneSvg`, `usePanZoom`, `Chart`, `useControllable`, `useElementWidth`, `MapAnimation`, `AnimationBar`, `TokenLayer`, `useAnimation`, and `synced`, `sampleGeometry` and the types `Step`, `TokenPlace`, `Geometry` in `animation.ts` are internal.
 
-Exported from `animation.ts`: `buildTracks(view, dfg, limit?, sampling?)`, `tokenPosition(track, t, geometry)`, `activityDensity(tracks, origin, span, bins?)` and the types `AnimationMode`, `Sampling`, `Track`, `Tracks`.
+Exported from `animation.ts`: `selectCases`, `tracksFor`, `buildTracks`, `tokenPosition(track, t, geometry)`, `activityDensity(tracks, origin, span, bins?)` and the types `AnimationMode`, `Sampling`, `Stretch`, `CaseSelection`, `Track`, `Tracks`.

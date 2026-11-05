@@ -11,20 +11,23 @@ interface Props {
   onSeek: (p: number) => void;
   /** Current log time (ms) in realtime mode, elapsed ms in synced mode. */
   time: number;
-  /** Playback speed as a multiple of real time. */
+  /** Wall-clock seconds for the whole timeline. */
+  duration: number;
+  onDuration: (seconds: number) => void;
+  /** Log ms per wall ms, shown for reference. */
   factor: number;
-  onFactor: (f: number) => void;
   density: number[];
   sampled: number;
   total: number;
   onExit: () => void;
 }
 
-const MIN_FACTOR = 1;
-const MAX_FACTOR = 2000;
+/** Slow end plays the timeline over ten minutes, fast end over ten seconds. */
+const SLOW_S = 600;
+const FAST_S = 10;
 
 export function AnimationBar(p: Props) {
-  const speedPosition = Math.log(p.factor / MIN_FACTOR) / Math.log(MAX_FACTOR / MIN_FACTOR);
+  const speedPosition = Math.log(SLOW_S / p.duration) / Math.log(SLOW_S / FAST_S);
   return (
     <div className="pm-anim-bar">
       <button
@@ -81,12 +84,14 @@ export function AnimationBar(p: Props) {
           value={Math.round(speedPosition * 100)}
           onChange={(e) => {
             const x = Number(e.target.value) / 100;
-            p.onFactor(Math.round(MIN_FACTOR * (MAX_FACTOR / MIN_FACTOR) ** x));
+            p.onDuration(Math.round(SLOW_S * (FAST_S / SLOW_S) ** x));
           }}
           aria-label="Speed"
         />
         <span>fast</span>
-        <span className="pm-anim-factor">×{formatFactor(p.factor)}</span>
+        <span className="pm-anim-factor" title={`×${formatNumber(Math.round(p.factor))} real time`}>
+          {formatDuration(p.duration * 1000)}
+        </span>
       </label>
       <select
         id="pm-anim-mode"
@@ -127,9 +132,4 @@ function Density({ values }: { values: number[] }) {
       <polygon points={`0,${H} ${points} ${W},${H}`} fill="var(--pm-accent)" opacity=".35" />
     </svg>
   );
-}
-
-function formatFactor(x: number): string {
-  if (x >= 100) return String(Math.round(x));
-  return x.toFixed(1);
 }

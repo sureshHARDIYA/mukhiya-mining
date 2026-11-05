@@ -64,5 +64,5 @@ The pseudo-random generator is `seededRandom` (mulberry32), so the same seed giv
 `apps/demo/public/data/{dbank-prod,kompis-prod}.json` hold 90 days of Application Insights page views
 and custom events from the prod workspace, exported by `scripts/export-appinsights.py` (ids hashed,
 path ids collapsed to `:id`). The demo loads them through the same worker as the sample log, via
-`fromJson` with attributes `kind`, `browser`, `os`. Query the Log Analytics workspace, not the
+`fromJson` with attributes `kind`, `browser`, `os`. A page view ends when the session's next event starts (time on page), so activity durations exist; custom events stay instants. Query the Log Analytics workspace, not the
 component: the component API returned only a sliver of the rows.
