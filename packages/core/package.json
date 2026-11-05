@@ -3,6 +3,25 @@
   "version": "0.1.0",
   "description": "Framework-free process-mining core: event-log indexing, filters, directly-follows graphs, variants, statistics and layout.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sureshHARDIYA/mukhiya-mining.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/sureshHARDIYA/mukhiya-mining#readme",
+  "bugs": "https://github.com/sureshHARDIYA/mukhiya-mining/issues",
+  "keywords": [
+    "process-mining",
+    "event-log",
+    "directly-follows-graph",
+    "react",
+    "typescript",
+    "clickstream",
+    "analytics"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

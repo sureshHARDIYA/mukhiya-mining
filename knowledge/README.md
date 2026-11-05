@@ -11,5 +11,6 @@ Documentation derived from the source code of `mukhiya-mining`. Each file states
 | [theming.md](theming.md) | `--pm-*` CSS variables, dark mode, overriding, CSS class names, animation styling. |
 | [performance.md](performance.md) | Design choices, stress-run numbers (2026-11-05), known limits. |
 | [demo.md](demo.md) | Running the demo, skeleton and animation settings, worker pattern, sample journey model. |
-| [design-reference.md](design-reference.md) | Summary of `docs/observations.md` and what the library keeps, drops, changes. |
+| [observations.md](observations.md) | Phase 1 notes: what was observed in the commercial reference tool, what is unknown, keep/drop list. |
+| [design-reference.md](design-reference.md) | Summary of `observations.md` and what the library keeps, drops, changes. |
 | [development.md](development.md) | Scripts, Biome rules, tests, publishing, workspace aliases. |

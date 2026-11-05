@@ -1,6 +1,6 @@
 # Design reference
 
-Summary of `docs/observations.md`: a study of a commercial desktop process-mining tool (Demo mode), done on 2026-11-05 through its visible UI only. No files, network traffic or binaries were inspected. Items marked Assumption or Unknown in the source were not directly observed.
+Summary of `observations.md`: a study of a commercial desktop process-mining tool (Demo mode), done on 2026-11-05 through its visible UI only. No files, network traffic or binaries were inspected. Items marked Assumption or Unknown in the source were not directly observed.
 
 ## What was observed
 

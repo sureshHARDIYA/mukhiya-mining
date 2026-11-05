@@ -1,62 +1,121 @@
 # mukhiya-mining
 
-Reusable React + TypeScript library for exploring process event logs, built for
-web-application process mining (session = case, page or action = activity).
+[![CI](https://github.com/sureshHARDIYA/mukhiya-mining/actions/workflows/ci.yml/badge.svg)](https://github.com/sureshHARDIYA/mukhiya-mining/actions/workflows/ci.yml)
+[![npm core](https://img.shields.io/npm/v/%40mukhiya-mining%2Fcore?label=%40mukhiya-mining%2Fcore)](https://www.npmjs.com/package/@mukhiya-mining/core)
+[![npm react](https://img.shields.io/npm/v/%40mukhiya-mining%2Freact?label=%40mukhiya-mining%2Freact)](https://www.npmjs.com/package/@mukhiya-mining/react)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-| Package                 | What it is                                                                                                                                                             |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@mukhiya-mining/core`  | Framework-free data handling: columnar event-log indexing, CSV/JSON adapters, four declarative filters, directly-follows graphs, variants, statistics, layered layout. |
-| `@mukhiya-mining/react` | Components: `ProcessExplorer` (all-in-one), `ProcessMap`, `StatisticsView`, `CasesView`, `FilterBar`, plus `ProcessMiningProvider` and hooks.                          |
-| `apps/demo`             | Vite app with a generated clickstream (10k, 100k or 1M sessions).                                                                                                      |
+Process mining for web applications, as a React + TypeScript library.
 
-## Quick start
+Feed it the events your app already records (page views, custom events, API calls) and it shows
+how people actually move through the product: the process map, the dominant paths, where sessions
+drop off, how long each step takes, and a replay of real sessions flowing through the map.
+
+It is built to be embedded in your own product, not to be a product: no server, no database, no
+account, one runtime dependency (`@dagrejs/dagre`), and it stays smooth with millions of events.
+
+![Process map](knowledge/images/map.png)
+
+## What you get
+
+- **Process map** (directly-follows graph) with reference-style conventions: a vertical spine, Start
+  and End markers, frequency or performance colouring, activity and path detail sliders, a
+  secondary metric, and a popover with the numbers for any node or path.
+- **Replay animation**: one token per session moves along the paths at a speed you pick (the
+  whole log in 10 s to 10 min); nodes and paths light up as tokens pass, like the reference tool.
+- **Statistics**: events over time, active cases, case duration and events-per-case charts,
+  global numbers, activity table, and a sortable cases/variants table.
+- **Cases**: virtualised list of every session with its variant and the full event trace.
+- **Filters**: timeframe, keep/remove activities, start and end activities, top variants.
+  Controlled or uncontrolled, so the host can persist them in a URL or a store.
+- **Export**: PNG, SVG or PDF of the map at the current detail level.
+- **Theming**: everything is a `--pm-*` CSS variable; light and dark included.
+- **Performance**: a columnar, typed-array event log. One million sessions (4.8 M events) index in
+  about a second, filters apply in under 50 ms, replay runs at 60 fps.
+
+| Replay | Statistics |
+| --- | --- |
+| ![Replay](knowledge/images/replay.png) | ![Statistics](knowledge/images/statistics.png) |
+
+## Packages
+
+| Package | What it is |
+| --- | --- |
+| [`@mukhiya-mining/core`](packages/core) | Framework-free data layer: event-log indexing, CSV/JSON adapters, filters, directly-follows graph, variants, statistics, layered layout. Runs in Node, a worker or the browser. |
+| [`@mukhiya-mining/react`](packages/react) | Components: `ProcessExplorer` (all-in-one), `ProcessMap`, `StatisticsView`, `CasesView`, `FilterBar`, `ExplorerSkeleton`, plus `ProcessMiningProvider` and hooks. |
+| [`apps/demo`](apps/demo) | Vite app with a generated clickstream (10k, 100k or 1M sessions) and two anonymised real logs exported from Azure Application Insights. |
+
+## Install
+
+```bash
+pnpm add @mukhiya-mining/core @mukhiya-mining/react
+```
+
+React 18 or 19 is a peer dependency.
+
+## Use
+
+```tsx
+import { buildEventLog, fromJson } from "@mukhiya-mining/core";
+import { ProcessExplorer } from "@mukhiya-mining/react";
+import "@mukhiya-mining/react/styles.css";
+
+// Any rows with a case id, an activity and a timestamp. Here: one row per page view.
+const events = fromJson(rows, {
+  caseId: "sessionId",
+  activity: "path",
+  timestamp: "timestamp",
+  endTimestamp: "leftAt", // optional: gives activities a duration
+  attributes: ["browser", "os"],
+});
+const log = buildEventLog(events);
+
+export function Sessions() {
+  return (
+    <ProcessExplorer
+      log={log}
+      height="80vh"
+      map={{ animation: true }}
+      onCaseOpen={(id) => router.push(`/sessions/${id}`)}
+    />
+  );
+}
+```
+
+For large logs build the `EventLog` in a Web Worker and transfer its buffers; the demo shows how
+(`apps/demo/src/worker.ts`). CSV works the same way through `fromCsv`.
+
+### Pulling events from Azure Application Insights
+
+`scripts/export-appinsights.py` is the query we use: page views and custom events from a Log
+Analytics workspace, session id as case, URL path as activity (ids collapsed to `:id`), a page
+view lasting until the session's next event. Adapt the workspace and app names and you have a log.
+
+## Documentation
+
+The [`knowledge/`](knowledge/README.md) folder is the reference:
+[architecture](knowledge/architecture.md), [data model](knowledge/data-model.md),
+[core API](knowledge/core-api.md), [React API](knowledge/react-api.md),
+[theming](knowledge/theming.md), [performance](knowledge/performance.md),
+[demo](knowledge/demo.md), [development](knowledge/development.md), the
+[design reference](knowledge/design-reference.md) behind the reference-like conventions and the
+[observation notes](knowledge/observations.md) it summarises.
+
+## Develop
 
 ```bash
 pnpm install
 pnpm dev          # demo on http://localhost:5173
-pnpm test         # core tests
+pnpm lint         # biome
+pnpm typecheck
+pnpm test
 pnpm build        # both packages to dist/
 ```
 
-## Use in a React app
+CI runs lint, typecheck, tests, builds and a dependency audit on every push and pull request.
+Renovate keeps dependencies current. Pushing a `v*` tag that matches the package versions
+publishes both packages to npm with provenance and creates a GitHub release.
 
-```tsx
-import { buildEventLog, fromCsv } from "@mukhiya-mining/core";
-import { ProcessExplorer } from "@mukhiya-mining/react";
-import "@mukhiya-mining/react/styles.css";
+## License
 
-const events = fromCsv(csvText, {
-  caseId: "session",
-  activity: "page",
-  timestamp: "ts",
-  endTimestamp: "end",
-});
-const log = buildEventLog(events);
-
-<ProcessExplorer log={log} height={640} onCaseOpen={(id) => router.push(`/sessions/${id}`)} />;
-```
-
-Controlled filters, selection and detail levels follow the usual `value` / `defaultValue` /
-`onChange` convention. Theme tokens are CSS variables (`--pm-*`) on the root element, or the
-`theme` prop. See `docs/observations.md` for the design reference notes.
-
-## Animation
-
-`ProcessMap` can replay the log: one token per case moves along the paths; the map turns grey and
-only the nodes and paths carrying a token light up, as in the reference tool. Turn it on with a prop; the rail then shows an "Animate" button.
-
-```tsx
-<ProcessExplorer log={log} map={{ animation: true, animationLimit: 4000 }} />
-```
-
-Two modes: real time (the busiest window of `animationLimit` cases, default 1500) and
-synchronised starts (cases sampled evenly, all starting at 0). The speed slider sets how long the
-whole timeline takes to play (10 s to 10 min, default 1 min), so a 90-day log and a 2-hour log
-replay equally well; hops are stretched so each takes about half a second on screen. The bar has
-play/pause, a seek timeline with an activity density curve, a clock and the speed slider. See `knowledge/react-api.md`. While a log is loading, show `<ExplorerSkeleton />`.
-
-## Performance
-
-Millions of events are fine: the log is indexed once into typed arrays and every metric derives
-from that index. Prefer `EventLogBuilder` over per-event objects for very large inputs, and build
-the log in a Web Worker (the demo does this and transfers the buffers).
+[MIT](LICENSE)

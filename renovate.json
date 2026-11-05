@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommitsDisabled", "group:allNonMajor"],
+  "schedule": ["before 6am on monday"],
+  "timezone": "Europe/Oslo",
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "postUpdateOptions": ["pnpmDedupe"],
+  "vulnerabilityAlerts": { "enabled": true, "schedule": ["at any time"] },
+  "packageRules": [
+    { "matchDepTypes": ["peerDependencies"], "enabled": false },
+    { "matchUpdateTypes": ["minor", "patch"], "matchDepTypes": ["devDependencies"], "automerge": true },
+    { "matchPackageNames": ["@dagrejs/dagre"], "automerge": false }
+  ]
+}

@@ -9,7 +9,7 @@ pnpm workspace (`pnpm-workspace.yaml`: `packages/*`, `apps/*`).
 | `packages/core` | `@mukhiya-mining/core` | Framework-free data handling. Only runtime dependency: `@dagrejs/dagre` (layout). |
 | `packages/react` | `@mukhiya-mining/react` | React components. Depends on core (`workspace:*`). Peer deps: `react`, `react-dom` >= 18. |
 | `apps/demo` | `demo` (private) | Vite app with a generated clickstream. |
-| `docs/observations.md` | | Design notes from a reference tool study. |
+| `observations.md` | | Design notes from a reference tool study. |
 
 ## Core / react split
 
