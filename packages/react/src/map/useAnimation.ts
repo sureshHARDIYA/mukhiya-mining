@@ -10,8 +10,9 @@ export interface AnimationState {
   progress: number;
   seek: (p: number) => void;
   time: number;
-  seconds: number;
-  setSeconds: (s: number) => void;
+  /** Playback speed as a multiple of real time. */
+  factor: number;
+  setFactor: (f: number) => void;
   span: number;
   timeRef: React.MutableRefObject<number>;
   tracks: Track[];
@@ -29,7 +30,7 @@ export function useAnimation(
 ): AnimationState {
   const [mode, setMode] = useState<AnimationMode>("realtime");
   const [playing, setPlaying] = useState(false);
-  const [seconds, setSeconds] = useState(300);
+  const [factor, setFactor] = useState(20);
   const [progress, setProgress] = useState(0);
   const timeRef = useRef(0);
 
@@ -62,7 +63,7 @@ export function useAnimation(
     const tick = (now: number) => {
       const dt = now - last;
       last = now;
-      timeRef.current = Math.min(origin + span, timeRef.current + (dt / 1000) * (span / seconds));
+      timeRef.current = Math.min(origin + span, timeRef.current + dt * factor);
       const p = (timeRef.current - origin) / span;
       setProgress(p);
       if (p >= 1) setPlaying(false);
@@ -70,7 +71,7 @@ export function useAnimation(
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [playing, origin, span, seconds]);
+  }, [playing, origin, span, factor]);
 
   const density = useMemo(() => activityDensity(tracks, origin, span), [tracks, origin, span]);
 
@@ -94,8 +95,8 @@ export function useAnimation(
     progress,
     seek,
     time: origin + progress * span,
-    seconds,
-    setSeconds,
+    factor,
+    setFactor,
     span,
     timeRef,
     tracks,

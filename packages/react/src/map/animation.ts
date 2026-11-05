@@ -36,7 +36,8 @@ export type Sampling = "window" | "spread";
 
 /**
  * One track per sampled case, projected onto the activities shown in the DFG.
- * "window" takes the first `limit` cases in chronological order, so a real-time replay stays busy;
+ * "window" takes the `limit` consecutive cases (by start time) that span the shortest time, i.e. the
+ * busiest stretch of the log, so a real-time replay shows many cases at once;
  * "spread" takes every n-th case, which suits synchronised starts.
  */
 export function buildTracks(
@@ -49,14 +50,17 @@ export function buildTracks(
   const hidden = new Set(dfg.hiddenActivities);
   const ids: number[] = [];
   for (let c = 0; c < log.cases.length; c++) if (view.caseMask[c] === 1) ids.push(c);
-  if (sampling === "window")
+  let offset = 0;
+  if (sampling === "window") {
     ids.sort((a, b) => (log.caseStartTime[a] as number) - (log.caseStartTime[b] as number));
+    offset = densestWindow(ids, log.caseStartTime, limit);
+  }
   const stride = sampling === "window" ? 1 : Math.max(1, Math.ceil(ids.length / limit));
   const tracks: Track[] = [];
   let timeStart = Number.POSITIVE_INFINITY;
   let timeEnd = Number.NEGATIVE_INFINITY;
   let maxDuration = 0;
-  for (let i = 0; i < ids.length && tracks.length < limit; i += stride) {
+  for (let i = offset; i < ids.length && tracks.length < limit; i += stride) {
     const track = buildTrack(view, ids[i] as number, hidden);
     if (!track) continue;
     tracks.push(track);
@@ -66,6 +70,23 @@ export function buildTracks(
   }
   tracks.sort((a, b) => a.start - b.start);
   return { tracks, timeStart, timeEnd, maxDuration, sampled: tracks.length, total: ids.length };
+}
+
+/** Index into `sorted` where the `limit` consecutive cases with the smallest start-time span begin. */
+function densestWindow(sorted: number[], startTime: Float64Array, limit: number): number {
+  if (sorted.length <= limit) return 0;
+  let best = 0;
+  let bestSpan = Number.POSITIVE_INFINITY;
+  for (let i = 0; i + limit <= sorted.length; i++) {
+    const span =
+      (startTime[sorted[i + limit - 1] as number] as number) -
+      (startTime[sorted[i] as number] as number);
+    if (span < bestSpan) {
+      bestSpan = span;
+      best = i;
+    }
+  }
+  return best;
 }
 
 function buildTrack(view: LogView, caseId: number, hidden: Set<number>): Track | null {

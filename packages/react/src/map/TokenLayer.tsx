@@ -46,7 +46,7 @@ export function TokenLayer({ scene, tracks, timeRef, playing, host, radius = 4 }
   return (
     <g ref={group} className="pm-tokens" pointerEvents="none">
       {pool.map((id) => (
-        <circle key={id} r={radius} className="pm-token" visibility="hidden" />
+        <circle key={id} r={radius} className="pm-token" opacity="0" />
       ))}
     </g>
   );
@@ -67,11 +67,11 @@ function paint(
     if (!el) break;
     const p = tokenPosition(tracks[i] as Track, t, geometry);
     if (!p) {
-      el.setAttribute("visibility", "hidden");
+      el.setAttribute("opacity", "0");
       continue;
     }
     now.add(p.on);
-    el.setAttribute("visibility", "visible");
+    el.setAttribute("opacity", "1");
     el.setAttribute("cx", String(p.x));
     el.setAttribute("cy", String(p.y));
   }

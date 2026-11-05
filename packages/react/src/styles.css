@@ -392,23 +392,34 @@
   fill: #f6b21b;
   stroke: #5a3b00;
   stroke-width: 1;
+  transition: opacity 0.25s ease;
 }
 
 /* Animation: grey the map, light up what carries a token */
 .pm-map.is-animating .pm-node-shape {
   fill: var(--pm-panel-strong);
   stroke: var(--pm-line);
+  transition:
+    fill 0.35s ease,
+    stroke 0.35s ease;
 }
 .pm-map.is-animating .pm-node text {
   fill: var(--pm-muted);
+  transition: fill 0.35s ease;
 }
 .pm-map.is-animating .pm-edge-stroke {
   stroke: var(--pm-line);
   stroke-width: 1.5px;
+  transition:
+    stroke 0.35s ease,
+    stroke-width 0.35s ease;
 }
 .pm-map.is-animating .pm-edge-arrow {
   fill: var(--pm-line);
   stroke: var(--pm-line);
+  transition:
+    fill 0.35s ease,
+    stroke 0.35s ease;
 }
 .pm-map.is-animating .pm-edge-label {
   display: none;

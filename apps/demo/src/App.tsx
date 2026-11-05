@@ -75,7 +75,7 @@ export function App() {
           log={log}
           height="calc(100vh - 110px)"
           colorScheme={dark ? "dark" : "light"}
-          map={{ animation: true }}
+          map={{ animation: true, animationLimit: 4000 }}
           onCaseOpen={(id) => alert(`Open case ${id} in the host app`)}
         />
       )}

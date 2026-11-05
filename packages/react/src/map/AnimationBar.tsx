@@ -11,23 +11,20 @@ interface Props {
   onSeek: (p: number) => void;
   /** Current log time (ms) in realtime mode, elapsed ms in synced mode. */
   time: number;
-  /** Playback length in seconds for the whole timeline. */
-  seconds: number;
-  onSeconds: (s: number) => void;
-  /** Timeline length in log ms, to show the playback factor. */
-  span: number;
+  /** Playback speed as a multiple of real time. */
+  factor: number;
+  onFactor: (f: number) => void;
   density: number[];
   sampled: number;
   total: number;
   onExit: () => void;
 }
 
-const SLOWEST = 1800;
-const FASTEST = 10;
+const MIN_FACTOR = 1;
+const MAX_FACTOR = 2000;
 
 export function AnimationBar(p: Props) {
-  const speedPosition =
-    1 - (Math.log(p.seconds) - Math.log(FASTEST)) / (Math.log(SLOWEST) - Math.log(FASTEST));
+  const speedPosition = Math.log(p.factor / MIN_FACTOR) / Math.log(MAX_FACTOR / MIN_FACTOR);
   return (
     <div className="pm-anim-bar">
       <button
@@ -84,12 +81,12 @@ export function AnimationBar(p: Props) {
           value={Math.round(speedPosition * 100)}
           onChange={(e) => {
             const x = Number(e.target.value) / 100;
-            p.onSeconds(Math.exp(Math.log(SLOWEST) + (Math.log(FASTEST) - Math.log(SLOWEST)) * x));
+            p.onFactor(Math.round(MIN_FACTOR * (MAX_FACTOR / MIN_FACTOR) ** x));
           }}
           aria-label="Speed"
         />
         <span>fast</span>
-        <span className="pm-anim-factor">×{formatFactor(p.span / 1000 / p.seconds)}</span>
+        <span className="pm-anim-factor">×{formatFactor(p.factor)}</span>
       </label>
       <select
         id="pm-anim-mode"
