@@ -117,6 +117,11 @@ CI runs lint, typecheck, tests, builds and a dependency audit on every push and 
 Renovate keeps dependencies current. Pushing a `v*` tag that matches the package versions
 publishes both packages to npm with provenance and creates a GitHub release.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). `main` is protected: changes arrive by pull request with green CI
+and a maintainer review. Security reports go through [SECURITY.md](SECURITY.md).
+
 ## License
 
 [MIT](LICENSE)

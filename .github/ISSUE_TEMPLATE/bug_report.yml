@@ -1,0 +1,32 @@
+name: Bug report
+description: Something renders wrong, computes wrong, or is slow.
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Versions
+      description: "@pathminer/core and @pathminer/react versions, React version, browser."
+      placeholder: "core 0.1.4, react 0.1.4, React 19.2, Chrome 145"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected. A screenshot or an exported SVG helps.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: The smallest event log (CSV or JSON rows) and the props that show it. The demo's generated log is fine when it reproduces there.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Log size
+      placeholder: "12,000 cases / 80,000 events"

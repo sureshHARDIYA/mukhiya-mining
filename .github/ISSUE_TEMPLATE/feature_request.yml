@@ -1,0 +1,24 @@
+name: Feature request
+description: Something the library should do.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to find out about your process, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: How it would work for a host application. Props, data shape, or a sketch.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Fits the scope?
+      description: The library targets web-application process mining with simple filters and keeps performance first.
+      options:
+        - "Yes, web-app process mining"
+        - "Not sure"
