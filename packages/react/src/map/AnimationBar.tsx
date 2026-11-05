@@ -14,14 +14,16 @@ interface Props {
   /** Playback length in seconds for the whole timeline. */
   seconds: number;
   onSeconds: (s: number) => void;
+  /** Timeline length in log ms, to show the playback factor. */
+  span: number;
   density: number[];
   sampled: number;
   total: number;
   onExit: () => void;
 }
 
-const SLOWEST = 180;
-const FASTEST = 6;
+const SLOWEST = 1800;
+const FASTEST = 10;
 
 export function AnimationBar(p: Props) {
   const speedPosition =
@@ -87,6 +89,7 @@ export function AnimationBar(p: Props) {
           aria-label="Speed"
         />
         <span>fast</span>
+        <span className="pm-anim-factor">×{formatFactor(p.span / 1000 / p.seconds)}</span>
       </label>
       <select
         id="pm-anim-mode"
@@ -127,4 +130,9 @@ function Density({ values }: { values: number[] }) {
       <polygon points={`0,${H} ${points} ${W},${H}`} fill="var(--pm-accent)" opacity=".35" />
     </svg>
   );
+}
+
+function formatFactor(x: number): string {
+  if (x >= 100) return String(Math.round(x));
+  return x.toFixed(1);
 }

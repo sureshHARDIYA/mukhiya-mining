@@ -380,6 +380,11 @@
 .pm-anim-speed input {
   width: 90px;
 }
+.pm-anim-factor {
+  min-width: 44px;
+  font-variant-numeric: tabular-nums;
+  color: var(--pm-fg);
+}
 .pm-anim-info {
   color: var(--pm-muted);
 }

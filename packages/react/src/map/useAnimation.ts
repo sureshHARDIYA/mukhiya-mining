@@ -12,6 +12,7 @@ export interface AnimationState {
   time: number;
   seconds: number;
   setSeconds: (s: number) => void;
+  span: number;
   timeRef: React.MutableRefObject<number>;
   tracks: Track[];
   density: number[];
@@ -28,7 +29,7 @@ export function useAnimation(
 ): AnimationState {
   const [mode, setMode] = useState<AnimationMode>("realtime");
   const [playing, setPlaying] = useState(false);
-  const [seconds, setSeconds] = useState(40);
+  const [seconds, setSeconds] = useState(300);
   const [progress, setProgress] = useState(0);
   const timeRef = useRef(0);
 
@@ -95,6 +96,7 @@ export function useAnimation(
     time: origin + progress * span,
     seconds,
     setSeconds,
+    span,
     timeRef,
     tracks,
     density,

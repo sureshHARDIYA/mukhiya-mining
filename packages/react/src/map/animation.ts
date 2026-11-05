@@ -27,7 +27,10 @@ export interface Tracks {
   total: number;
 }
 
-const APPROACH_MS = 1;
+/** Log-time the token spends entering from Start and leaving to End. */
+const APPROACH_MS = 15_000;
+/** Web logs have near-zero gaps between pages; stretch hops so tokens travel instead of teleport. */
+const MIN_TRAVEL_MS = 20_000;
 
 export type Sampling = "window" | "spread";
 
@@ -69,12 +72,19 @@ function buildTrack(view: LogView, caseId: number, hidden: Set<number>): Track |
   const { log } = view;
   const [from, to] = caseEvents(log, caseId);
   const steps: Step[] = [];
+  let shift = 0;
   for (let e = from; e < to; e++) {
     const a = log.eventActivity[e] as number;
     if (hidden.has(a)) continue;
-    const start = log.eventStart[e] as number;
-    const end = log.eventEnd[e] as number;
-    steps.push({ node: String(a), start, end: Number.isNaN(end) ? start : end });
+    const previous = steps[steps.length - 1];
+    let start = (log.eventStart[e] as number) + shift;
+    if (previous && start - previous.end < MIN_TRAVEL_MS) {
+      shift += previous.end + MIN_TRAVEL_MS - start;
+      start = previous.end + MIN_TRAVEL_MS;
+    }
+    const rawEnd = log.eventEnd[e] as number;
+    const end = Number.isNaN(rawEnd) ? start : rawEnd + shift;
+    steps.push({ node: String(a), start, end: Math.max(start, end) });
   }
   if (steps.length === 0) return null;
   const first = steps[0] as Step;
