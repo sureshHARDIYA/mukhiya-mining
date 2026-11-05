@@ -272,7 +272,7 @@ function edgeMarkup(e: SceneEdge, selected: boolean): string {
       ? `<tspan fill="var(--pm-muted)" font-size="9"> (${esc(e.secondary)})</tspan>`
       : "";
     parts.push(
-      `<text x="${e.labelAt.x}" y="${e.labelAt.y}" class="pm-edge-label" font-size="11" fill="var(--pm-fg)" paint-order="stroke" stroke="var(--pm-bg)" stroke-width="3" stroke-linejoin="round">${esc(e.label)}${secondary}</text>`,
+      `<text x="${e.labelAt.x}" y="${e.labelAt.y}" class="pm-edge-label" font-size="11" fill="${e.dashed ? "var(--pm-muted)" : "var(--pm-fg)"}" paint-order="stroke" stroke="var(--pm-bg)" stroke-width="3" stroke-linejoin="round">${esc(e.label)}${secondary}</text>`,
     );
   }
   parts.push("</g>");
@@ -280,12 +280,11 @@ function edgeMarkup(e: SceneEdge, selected: boolean): string {
 }
 
 function markerMarkup(n: SceneNode): string {
-  const fill = n.kind === "start" ? "var(--pm-bg)" : "var(--pm-marker)";
-  const triangle =
+  const glyph =
     n.kind === "start"
-      ? `<path d="M${n.x - 5} ${n.y - 4} L${n.x + 5} ${n.y - 4} L${n.x} ${n.y + 5} Z" fill="var(--pm-marker)"/>`
-      : "";
-  return `<g class="pm-node pm-node-${n.kind}" data-id="${esc(n.id)}"><circle cx="${n.x}" cy="${n.y}" r="${n.width / 2}" fill="${fill}" stroke="var(--pm-marker)" stroke-width="2"/>${triangle}</g>`;
+      ? `<path d="M${n.x - 4} ${n.y - 5} L${n.x + 5} ${n.y} L${n.x - 4} ${n.y + 5} Z" fill="var(--pm-marker)"/>`
+      : `<rect x="${n.x - 4}" y="${n.y - 4}" width="8" height="8" rx="1" fill="var(--pm-marker)"/>`;
+  return `<g class="pm-node pm-node-${n.kind}" data-id="${esc(n.id)}"><circle cx="${n.x}" cy="${n.y}" r="${n.width / 2}" fill="var(--pm-marker-bg)" stroke="var(--pm-marker)" stroke-width="1.5"/>${glyph}</g>`;
 }
 
 function nodeMarkup(n: SceneNode, selected: boolean): string {

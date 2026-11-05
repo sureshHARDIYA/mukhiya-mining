@@ -9,6 +9,7 @@
   --pm-accent: #2f6fa8;
   --pm-accent-fg: #ffffff;
   --pm-marker: #7d8a93;
+  --pm-marker-bg: #e3e8eb;
   --pm-selected: #7a3fa3;
   --pm-selected-stroke: #5b2a7e;
   --pm-freq-head: #2f6b8f;
@@ -41,6 +42,7 @@
   --pm-accent: #6fb0e6;
   --pm-accent-fg: #0d1216;
   --pm-marker: #8d989f;
+  --pm-marker-bg: #2b3338;
   --pm-selected: #9a62c9;
   --pm-selected-stroke: #c5a0e6;
   --pm-freq-head: #2a5f80;

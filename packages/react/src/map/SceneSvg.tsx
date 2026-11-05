@@ -99,7 +99,7 @@ const Edge = memo(function Edge({
             className="pm-edge-label"
             x={e.labelAt.x}
             y={e.labelAt.y}
-            fill="var(--pm-fg)"
+            fill={e.dashed ? "var(--pm-muted)" : "var(--pm-fg)"}
             paintOrder="stroke"
             stroke="var(--pm-bg)"
             strokeWidth="3"
@@ -133,11 +133,15 @@ const Node = memo(function Node({
       >
         <circle
           r={n.width / 2}
-          fill={n.kind === "start" ? "var(--pm-bg)" : "var(--pm-marker)"}
+          fill="var(--pm-marker-bg)"
           stroke="var(--pm-marker)"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
-        {n.kind === "start" ? <path d="M-5 -4 L5 -4 L0 5 Z" fill="var(--pm-marker)" /> : null}
+        {n.kind === "start" ? (
+          <path d="M-4 -5 L5 0 L-4 5 Z" fill="var(--pm-marker)" />
+        ) : (
+          <rect x="-4" y="-4" width="8" height="8" rx="1" fill="var(--pm-marker)" />
+        )}
       </g>
     );
   }
