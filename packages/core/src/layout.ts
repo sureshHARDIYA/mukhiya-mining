@@ -1,6 +1,11 @@
 import dagre from "@dagrejs/dagre";
 import { type Dfg, type DfgEdge, END_NODE, START_NODE } from "./types";
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 export interface LayoutNode {
   id: string;
   x: number;
@@ -63,22 +68,17 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     acyclicer: "greedy",
   });
   graph.setDefaultEdgeLabel(() => ({}));
-  // Start edges weigh 1 so the marker follows the spine. End stays out of the ranking: ranking it
-  // last drags long dummy chains through the ordering and bends the spine sideways.
+  // Start and End stay out of the ranking: as ranked nodes their dummy chains drag the ordering,
+  // bend the main spine sideways and wrap dotted boxes around the drawing. They are placed after.
   const isPseudo = (id: string) => id === START_NODE || id === END_NODE;
   for (const node of dfg.nodes) {
-    if (node.id === END_NODE) continue;
-    const pseudo = node.activity < 0;
-    graph.setNode(node.id, {
-      width: pseudo ? 24 : nodeWidth(node.name, options),
-      height: pseudo ? 24 : nodeHeight,
-    });
+    if (isPseudo(node.id)) continue;
+    graph.setNode(node.id, { width: nodeWidth(node.name, options), height: nodeHeight });
   }
   for (const edge of dfg.edges) {
-    if (edge.source === edge.target || edge.target === END_NODE) continue;
-    const pseudo = isPseudo(edge.source) || isPseudo(edge.target);
+    if (edge.source === edge.target || isPseudo(edge.source) || isPseudo(edge.target)) continue;
     graph.setEdge(edge.source, edge.target, {
-      weight: pseudo ? 1 : Math.max(1, Math.round(edge.frequency)),
+      weight: Math.max(1, Math.round(edge.frequency)),
       width: edgeLabel.width,
       height: edgeLabel.height,
       labelpos: "r",
@@ -91,7 +91,7 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     return { id, x: n.x, y: n.y, width: n.width, height: n.height };
   });
   const edges: LayoutEdge[] = dfg.edges.map((edge) => {
-    if (edge.source === edge.target || edge.target === END_NODE)
+    if (edge.source === edge.target || isPseudo(edge.source) || isPseudo(edge.target))
       return { id: edge.id, source: edge.source, target: edge.target, points: [] };
     const e = graph.edge(edge.source, edge.target);
     const out: LayoutEdge = {
@@ -103,8 +103,9 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     if (e && typeof e.x === "number" && typeof e.y === "number") out.label = { x: e.x, y: e.y };
     return out;
   });
-  snapStart(dfg, nodes, edges);
-  placeEnd(dfg, nodes, edges, rankSeparation);
+  const useLanes = deepConnections(dfg, nodes) <= MAX_LANES;
+  placeMarker(dfg, nodes, edges, rankSeparation, "start", useLanes);
+  placeMarker(dfg, nodes, edges, rankSeparation, "end", useLanes);
   return normaliseBounds(nodes, edges, 20);
 }
 
@@ -128,70 +129,135 @@ function heaviestNeighbour(
   return best;
 }
 
-/** Slide Start over the activity most cases start with; only the marker end of each route moves. */
-function snapStart(dfg: Dfg, nodes: LayoutNode[], edges: LayoutEdge[]): void {
-  const byId = new Map(nodes.map((n) => [n.id, n]));
-  const start = byId.get(START_NODE);
-  const entry = heaviestNeighbour(dfg, byId, START_NODE, null, (e) => e.target);
-  if (!start || !entry) return;
-  start.x = entry.x;
-  for (const e of edges)
-    if (e.source === START_NODE && e.points.length)
-      e.points[0] = { x: start.x, y: start.y + start.height / 2 };
+const MAX_LANES = 8;
+const LANE = 14;
+const MARKER = 24;
+
+interface Extent {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+function extentOf(nodes: readonly LayoutNode[]): Extent {
+  const e = {
+    minX: Number.POSITIVE_INFINITY,
+    maxX: Number.NEGATIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
+    maxY: Number.NEGATIVE_INFINITY,
+  };
+  for (const n of nodes) {
+    e.minX = Math.min(e.minX, n.x - n.width / 2);
+    e.maxX = Math.max(e.maxX, n.x + n.width / 2);
+    e.minY = Math.min(e.minY, n.y - n.height / 2);
+    e.maxY = Math.max(e.maxY, n.y + n.height / 2);
+  }
+  return e;
+}
+
+interface MarkerSide {
+  kind: "start" | "end";
+  id: string;
+  /** +1 for Start (ports face down), -1 for End (ports face up). */
+  dir: 1 | -1;
+  marker: LayoutNode;
+  ext: Extent;
+  rankSeparation: number;
+}
+
+/** Node port facing the marker, and the marker's own port. */
+function ports(m: MarkerSide, n: LayoutNode): { node: Point; marker: Point } {
+  return {
+    node: { x: n.x, y: n.y - (m.dir * n.height) / 2 },
+    marker: { x: m.marker.x, y: m.marker.y + (m.dir * MARKER) / 2 },
+  };
+}
+
+/** True when the activity sits on the rank next to the marker. */
+function adjacentToMarker(m: MarkerSide, n: LayoutNode): boolean {
+  return m.kind === "start"
+    ? n.y - n.height / 2 <= m.ext.minY + 1
+    : n.y + n.height / 2 >= m.ext.maxY - 1;
+}
+
+function laneRoute(m: MarkerSide, n: LayoutNode, lanes: { left: number; right: number }): Point[] {
+  const p = ports(m, n);
+  const left = n.x - m.ext.minX < m.ext.maxX - n.x;
+  const lane = left ? lanes.left++ : lanes.right++;
+  const x = left
+    ? m.ext.minX - m.rankSeparation / 2 - lane * LANE
+    : m.ext.maxX + m.rankSeparation / 2 + lane * LANE;
+  const side = { x: n.x + ((left ? -1 : 1) * n.width) / 2, y: n.y };
+  const turn = { x, y: p.marker.y + (m.dir * m.rankSeparation) / 4 };
+  return m.kind === "start"
+    ? [p.marker, turn, { x, y: n.y }, side]
+    : [side, { x, y: n.y }, turn, p.marker];
 }
 
 /**
- * End sits one rank below the drawing under the activity most cases end with. Exits on the bottom
- * rank run straight down; others leave sideways and follow a lane down the nearer margin, like
- * the reference tool's dotted end paths. Lanes are staggered so parallel routes stay apart.
+ * Start sits one rank above the drawing over the activity most cases start with; End one rank
+ * below under the activity most cases end with, as the reference tool draws them. Activities on the adjacent
+ * rank connect straight; deeper ones leave sideways into a staggered lane down the nearer margin,
+ * like the reference tool's dotted paths. With many deep connections the lanes would wrap nested boxes around
+ * the drawing, so straight runs are used instead, the way dense dot layouts look.
  */
-function placeEnd(
+/** Start/End connections to activities that are not on the top or bottom rank. */
+function deepConnections(dfg: Dfg, nodes: readonly LayoutNode[]): number {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const ext = extentOf(nodes);
+  let deep = 0;
+  for (const e of dfg.edges) {
+    const n = byId.get(e.source === START_NODE ? e.target : e.target === END_NODE ? e.source : "");
+    if (!n) continue;
+    const top = n.y - n.height / 2 <= ext.minY + 1;
+    const bottom = n.y + n.height / 2 >= ext.maxY - 1;
+    if (!(e.source === START_NODE ? top : bottom)) deep++;
+  }
+  return deep;
+}
+
+function placeMarker(
   dfg: Dfg,
   nodes: LayoutNode[],
   edges: LayoutEdge[],
   rankSeparation: number,
+  kind: "start" | "end",
+  useLanes: boolean,
 ): void {
-  if (!dfg.nodes.some((n) => n.id === END_NODE)) return;
+  const id = kind === "start" ? START_NODE : END_NODE;
+  if (!dfg.nodes.some((n) => n.id === id)) return;
   const byId = new Map(nodes.map((n) => [n.id, n]));
-  const activities = nodes.filter((n) => n.id !== START_NODE);
+  const activities = nodes.filter((n) => n.id !== START_NODE && n.id !== END_NODE);
   if (activities.length === 0) return;
-  let minX = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY;
-  let maxY = Number.NEGATIVE_INFINITY;
-  for (const n of activities) {
-    minX = Math.min(minX, n.x - n.width / 2);
-    maxX = Math.max(maxX, n.x + n.width / 2);
-    maxY = Math.max(maxY, n.y + n.height / 2);
-  }
-  const size = 24;
-  const exit = heaviestNeighbour(dfg, byId, null, END_NODE, (e) => e.source);
-  const end: LayoutNode = {
-    id: END_NODE,
-    x: exit?.x ?? (minX + maxX) / 2,
-    y: maxY + rankSeparation + size / 2,
-    width: size,
-    height: size,
+  const ext = extentOf(activities);
+  const dir = kind === "start" ? 1 : -1;
+  const anchor =
+    kind === "start"
+      ? heaviestNeighbour(dfg, byId, START_NODE, null, (e) => e.target)
+      : heaviestNeighbour(dfg, byId, null, END_NODE, (e) => e.source);
+  const marker: LayoutNode = {
+    id,
+    x: anchor?.x ?? (ext.minX + ext.maxX) / 2,
+    y:
+      kind === "start"
+        ? ext.minY - rankSeparation - MARKER / 2
+        : ext.maxY + rankSeparation + MARKER / 2,
+    width: MARKER,
+    height: MARKER,
   };
-  nodes.push(end);
+  nodes.push(marker);
+  const m: MarkerSide = { kind, id, dir, marker, ext, rankSeparation };
+  const own = edges
+    .filter((e) => (kind === "start" ? e.source : e.target) === id)
+    .map((e) => ({ e, n: byId.get(kind === "start" ? e.target : e.source) }))
+    .filter((x): x is { e: LayoutEdge; n: LayoutNode } => x.n !== undefined);
   const lanes = { left: 0, right: 0 };
-  const LANE = 14;
-  for (const e of edges) {
-    if (e.target !== END_NODE) continue;
-    const source = byId.get(e.source);
-    if (!source) continue;
-    const bottom = { x: source.x, y: source.y + source.height / 2 };
-    const top = { x: end.x, y: end.y - size / 2 };
-    if (bottom.y >= maxY - 1) {
-      e.points = [bottom, top];
-      continue;
-    }
-    const left = source.x - minX < maxX - source.x;
-    const lane = left ? lanes.left++ : lanes.right++;
-    const x = left
-      ? minX - rankSeparation / 2 - lane * LANE
-      : maxX + rankSeparation / 2 + lane * LANE;
-    const side = { x: source.x + ((left ? -1 : 1) * source.width) / 2, y: source.y };
-    e.points = [side, { x, y: source.y }, { x, y: top.y - rankSeparation / 4 }, top];
+  for (const { e, n } of own) {
+    if (adjacentToMarker(m, n) || !useLanes) {
+      const p = ports(m, n);
+      e.points = kind === "start" ? [p.marker, p.node] : [p.node, p.marker];
+    } else e.points = laneRoute(m, n, lanes);
   }
 }
 

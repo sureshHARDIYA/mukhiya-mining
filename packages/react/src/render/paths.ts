@@ -6,26 +6,34 @@ export interface Point {
 }
 
 /**
- * Polyline with rounded corners: straight runs joined by quadratic arcs, like a dot spline. Never
- * overshoots a bend, which keeps detours and back edges calm.
+ * Uniform cubic B-spline through the layout points (end points clamped), the curve dot draws.
+ * It follows the control polygon without overshooting, so long routes around the drawing read as
+ * loops rather than boxes. Two points give a straight line.
  */
-export function smoothPath(points: readonly Point[], radius = 28): string {
+export function smoothPath(points: readonly Point[]): string {
   if (points.length === 0) return "";
   const first = points[0] as Point;
   if (points.length === 1) return `M${first.x} ${first.y}`;
-  let d = `M${first.x} ${first.y}`;
-  for (let i = 1; i < points.length - 1; i++) {
-    const a = points[i - 1] as Point;
-    const b = points[i] as Point;
-    const c = points[i + 1] as Point;
-    const inLen = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    const outLen = Math.hypot(c.x - b.x, c.y - b.y) || 1;
-    const r = Math.min(radius, inLen / 2, outLen / 2);
-    const p = { x: b.x - ((b.x - a.x) / inLen) * r, y: b.y - ((b.y - a.y) / inLen) * r };
-    const q = { x: b.x + ((c.x - b.x) / outLen) * r, y: b.y + ((c.y - b.y) / outLen) * r };
-    d += ` L${p.x} ${p.y} Q${b.x} ${b.y} ${q.x} ${q.y}`;
-  }
   const last = points[points.length - 1] as Point;
+  if (points.length === 2) return `M${first.x} ${first.y} L${last.x} ${last.y}`;
+  const p = [first, first, ...points, last, last];
+  let d = `M${first.x} ${first.y}`;
+  for (let i = 1; i + 2 < p.length; i++) {
+    const p0 = p[i - 1] as Point;
+    const p1 = p[i] as Point;
+    const p2 = p[i + 1] as Point;
+    const p3 = p[i + 2] as Point;
+    const c1 = {
+      x: (p0.x + 4 * p1.x + p2.x) / 6 + (p2.x - p0.x) / 6,
+      y: (p0.y + 4 * p1.y + p2.y) / 6 + (p2.y - p0.y) / 6,
+    };
+    const c2 = {
+      x: (p1.x + 4 * p2.x + p3.x) / 6 - (p3.x - p1.x) / 6,
+      y: (p1.y + 4 * p2.y + p3.y) / 6 - (p3.y - p1.y) / 6,
+    };
+    const end = { x: (p1.x + 4 * p2.x + p3.x) / 6, y: (p1.y + 4 * p2.y + p3.y) / 6 };
+    d += ` C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}`;
+  }
   return `${d} L${last.x} ${last.y}`;
 }
 
