@@ -292,7 +292,7 @@ function MapTools({
   return (
     <div className="pm-map-tools">
       {onAnimate ? (
-        <button type="button" className="pm-btn pm-btn-primary" onClick={onAnimate}>
+        <button type="button" className="pm-btn is-primary" onClick={onAnimate}>
           ▶ Animate
         </button>
       ) : null}

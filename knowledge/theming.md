@@ -64,7 +64,7 @@ The node and edge colour scales for the metric are **not** CSS variables: they c
 | `.pm-btn` (`.is-primary`), `.pm-seg`, `.pm-select`, `.pm-input`, `.pm-label` | Shared controls. |
 | `.pm-map`, `.pm-map-viewport` (`.is-panning`), `.pm-map-empty`, `.pm-map-toolbar` (only without the rail) | Process map. |
 | `.pm-root.is-fullscreen`, `.pm-root:fullscreen` | Explorer in full screen: fixed overlay (`inset: 0`, high z-index) or the browser's own; the explorer loses its border and radius. |
-| `.pm-tabs-summary`, `.pm-rail-footer`, `.pm-map-tools`, `.pm-btn-primary`, `.pm-map-export` | Map summary in the explorer header; Animate and Export at the bottom of the rail. |
+| `.pm-tabs-summary`, `.pm-rail-footer`, `.pm-map-tools`, `.pm-btn.is-primary` (hover darkens, text stays light), `.pm-map-export` | Map summary in the explorer header; Animate and Export at the bottom of the rail. |
 | `.pm-rail`, `.pm-slider`, `.pm-legend`, `.pm-legend-ticks` | Right rail. |
 | `.pm-node` (`.is-selected`), `.pm-edge` (`.is-selected`), `.pm-edge-label` | SVG nodes and edges. |
 | `.pm-popover`, `.pm-popover-title`, `.pm-popover-head`, `.pm-popover-body` (`.is-freq`, `.is-perf`), `.pm-popover-row`, `.pm-popover-actions` | Popover. |

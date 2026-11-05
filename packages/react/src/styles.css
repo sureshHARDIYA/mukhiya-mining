@@ -134,6 +134,10 @@
   color: var(--pm-accent-fg);
   border-color: var(--pm-accent);
 }
+.pm-btn.is-primary:hover {
+  background: color-mix(in srgb, var(--pm-accent) 85%, black);
+  color: var(--pm-accent-fg);
+}
 .pm-seg {
   display: inline-flex;
   border: 1px solid var(--pm-line);
@@ -600,13 +604,8 @@
   font-size: 12px;
   color: var(--pm-muted);
 }
-.pm-btn-primary {
-  background: var(--pm-accent);
-  color: var(--pm-accent-fg);
-  border-color: var(--pm-accent);
-}
 .pm-rail-footer .pm-map-tools .pm-map-export,
-.pm-rail-footer .pm-map-tools .pm-btn-primary {
+.pm-rail-footer .pm-map-tools .is-primary {
   flex: 1 1 100%;
 }
 .pm-chip {
