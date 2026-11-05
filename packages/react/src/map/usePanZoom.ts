@@ -1,10 +1,4 @@
-import {
-  type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { type PointerEvent as ReactPointerEvent, useCallback, useRef, useState } from "react";
 
 export interface Transform {
   x: number;
@@ -49,9 +43,9 @@ export function usePanZoom(initial: Transform = { x: 0, y: 0, k: 1 }) {
     setPanning(false);
     return moved;
   }, []);
-  const onWheel = useCallback((e: ReactWheelEvent<SVGSVGElement>) => {
+  const onWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = (e.currentTarget as Element).getBoundingClientRect();
     const px = e.clientX - rect.left;
     const py = e.clientY - rect.top;
     setTransform((t) => {

@@ -1,5 +1,5 @@
 import { type EventLog, formatNumber } from "@mukhiya-mining/core";
-import { ProcessExplorer } from "@mukhiya-mining/react";
+import { ExplorerSkeleton, ProcessExplorer } from "@mukhiya-mining/react";
 import "@mukhiya-mining/react/styles.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -64,14 +64,21 @@ export function App() {
       <div id="status" style={{ fontSize: 13, opacity: 0.8 }}>
         {status}
       </div>
-      {log ? (
+      {log === null ? (
+        <ExplorerSkeleton
+          message={status}
+          height="calc(100vh - 110px)"
+          colorScheme={dark ? "dark" : "light"}
+        />
+      ) : (
         <ProcessExplorer
           log={log}
           height="calc(100vh - 110px)"
           colorScheme={dark ? "dark" : "light"}
+          map={{ animation: true }}
           onCaseOpen={(id) => alert(`Open case ${id} in the host app`)}
         />
-      ) : null}
+      )}
     </div>
   );
 }

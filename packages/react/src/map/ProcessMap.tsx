@@ -15,6 +15,7 @@ import { useProcessModel } from "../context";
 import { defaultShow, type Metric, metricValue, type Show } from "../render/scales";
 import { buildScene, type Scene } from "../render/scene";
 import { useControllable } from "../shared/useControllable";
+import { MapAnimation } from "./MapAnimation";
 import { type Detail, MapRail } from "./MapRail";
 import { Popover } from "./Popover";
 import { SceneSvg } from "./SceneSvg";
@@ -30,6 +31,10 @@ export interface ProcessMapProps {
   onDetailChange?: ((detail: Detail) => void) | undefined;
   secondary?: Show | null | undefined;
   showRail?: boolean | undefined;
+  /** Show the "Animate" button; replay moves one token per case along the paths. */
+  animation?: boolean | undefined;
+  /** Max cases replayed at once; larger views are sampled evenly. */
+  animationLimit?: number | undefined;
   className?: string | undefined;
   style?: CSSProperties | undefined;
 }
@@ -38,19 +43,8 @@ const DEFAULT_DETAIL: Detail = { activities: 1, paths: 0.5 };
 
 export function ProcessMap(props: ProcessMapProps) {
   const { view, selection, setSelection, filters, setFilters, permissions } = useProcessModel();
-  const [metric, setMetric] = useControllable(
-    props.metric,
-    props.defaultMetric ?? "frequency",
-    props.onMetricChange,
-  );
-  const [show, setShow] = useState<Show>(props.show ?? defaultShow(metric));
-  const [detail, setDetail] = useControllable(
-    props.detail,
-    props.defaultDetail ?? DEFAULT_DETAIL,
-    props.onDetailChange,
-  );
-  const [secondary, setSecondary] = useState<Show | null>(props.secondary ?? null);
-  const effectiveShow = props.show ?? show;
+  const { metric, setMetric, setShow, detail, setDetail, secondary, setSecondary, effectiveShow } =
+    useMapSettings(props);
 
   // Path detail only reselects edges; the expensive walk over events depends on activities alone.
   const fullDfg = useMemo(
@@ -100,7 +94,7 @@ export function ProcessMap(props: ProcessMapProps) {
       setShow(defaultShow(m));
       setSecondary(null);
     },
-    [setMetric],
+    [setMetric, setShow, setSecondary],
   );
   const onNodeClick = useCallback(
     (id: string) => setSelection({ kind: "activity", id }),
@@ -114,6 +108,16 @@ export function ProcessMap(props: ProcessMapProps) {
     if (!pz.onPointerUp()) setSelection(null);
   }, [pz, setSelection]);
 
+  const [animating, setAnimating] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const onWheel = pz.onWheel;
+  // React registers wheel listeners as passive, so preventDefault needs a native listener.
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [onWheel]);
   const selectedId =
     selection?.kind === "activity" || selection?.kind === "path" ? selection.id : null;
   const popover = usePopover(
@@ -127,16 +131,19 @@ export function ProcessMap(props: ProcessMapProps) {
   );
 
   return (
-    <div className={`pm-map${props.className ? ` ${props.className}` : ""}`} style={props.style}>
+    <div
+      className={`pm-map${animating ? " is-animating" : ""}${props.className ? ` ${props.className}` : ""}`}
+      style={props.style}
+    >
       <div ref={viewportRef} className={`pm-map-viewport${pz.panning ? " is-panning" : ""}`}>
         <svg
+          ref={svgRef}
           role="img"
           aria-label="Process map"
           onPointerDown={pz.onPointerDown}
           onPointerMove={pz.onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
-          onWheel={pz.onWheel}
         >
           <SceneSvg
             scene={scene}
@@ -146,30 +153,33 @@ export function ProcessMap(props: ProcessMapProps) {
             onEdgeClick={onEdgeClick}
           />
         </svg>
-        <div className="pm-map-toolbar">
-          <span>{Math.round(pz.transform.k * 100)}%</span>
-          <button
-            type="button"
-            className="pm-btn"
-            onClick={() =>
-              viewportRef.current &&
-              pz.fit(scene, {
-                width: viewportRef.current.clientWidth,
-                height: viewportRef.current.clientHeight,
-              })
-            }
-          >
-            Fit
-          </button>
-          <span>
-            {formatNumber(view.caseCount)} of {formatNumber(view.log.cases.length)} cases ·{" "}
-            {dfg.nodes.length - 2} activities · {dfg.edges.length} paths
-          </span>
-        </div>
+        <MapToolbar
+          zoom={pz.transform.k}
+          onFit={() =>
+            viewportRef.current &&
+            pz.fit(scene, {
+              width: viewportRef.current.clientWidth,
+              height: viewportRef.current.clientHeight,
+            })
+          }
+          summary={`${formatNumber(view.caseCount)} of ${formatNumber(view.log.cases.length)} cases · ${dfg.nodes.length - 2} activities · ${dfg.edges.length} paths`}
+          onAnimate={props.animation && !animating ? () => setAnimating(true) : undefined}
+        />
         {view.caseCount === 0 ? (
           <div className="pm-map-empty">No cases match the current filters.</div>
         ) : null}
         {popover ? <Popover {...popover} canFilter={permissions.canFilter} /> : null}
+        {animating ? (
+          <MapAnimation
+            view={view}
+            dfg={dfg}
+            scene={scene}
+            transform={pz.transform}
+            limit={props.animationLimit ?? 1500}
+            host={viewportRef.current}
+            onExit={() => setAnimating(false)}
+          />
+        ) : null}
       </div>
       {props.showRail === false ? null : (
         <MapRail
@@ -249,4 +259,57 @@ function usePopover(
       onClose: () => setSelection(null),
     };
   }, [dfg, scene, selectedId, t, filters, setFilters, setSelection]);
+}
+
+function MapToolbar({
+  zoom,
+  onFit,
+  summary,
+  onAnimate,
+}: {
+  zoom: number;
+  onFit: () => void;
+  summary: string;
+  onAnimate: (() => void) | undefined;
+}) {
+  return (
+    <div className="pm-map-toolbar">
+      <span>{Math.round(zoom * 100)}%</span>
+      <button type="button" className="pm-btn" onClick={onFit}>
+        Fit
+      </button>
+      <span>{summary}</span>
+      {onAnimate ? (
+        <button type="button" className="pm-btn" onClick={onAnimate}>
+          Animate
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function useMapSettings(props: ProcessMapProps) {
+  const [metric, setMetric] = useControllable(
+    props.metric,
+    props.defaultMetric ?? "frequency",
+    props.onMetricChange,
+  );
+  const [show, setShow] = useState<Show>(props.show ?? defaultShow(metric));
+  const [detail, setDetail] = useControllable(
+    props.detail,
+    props.defaultDetail ?? DEFAULT_DETAIL,
+    props.onDetailChange,
+  );
+  const [secondary, setSecondary] = useState<Show | null>(props.secondary ?? null);
+  return {
+    metric,
+    setMetric,
+    show,
+    setShow,
+    detail,
+    setDetail,
+    secondary,
+    setSecondary,
+    effectiveShow: props.show ?? show,
+  };
 }

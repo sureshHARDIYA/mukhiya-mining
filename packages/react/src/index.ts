@@ -13,6 +13,7 @@ export type { Detail } from "./map/MapRail";
 export { ProcessMap, type ProcessMapProps } from "./map/ProcessMap";
 export { type ExplorerTab, ProcessExplorer, type ProcessExplorerProps } from "./ProcessExplorer";
 export * from "./render";
+export { ExplorerSkeleton, type ExplorerSkeletonProps } from "./shared/ExplorerSkeleton";
 export { VirtualList, type VirtualListProps } from "./shared/VirtualList";
 export {
   type StatisticsPage,

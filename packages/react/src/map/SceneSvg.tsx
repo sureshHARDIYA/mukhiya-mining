@@ -69,6 +69,7 @@ const Edge = memo(function Edge({
       {/* biome-ignore lint/a11y/useSemanticElements: an SVG group cannot be a <button>; it carries the button role and keyboard handling instead */}
       <g
         className={`pm-edge${selected ? " is-selected" : ""}`}
+        data-id={e.id}
         role="button"
         tabIndex={0}
         aria-label={`Path ${e.id}`}
@@ -153,6 +154,7 @@ const Node = memo(function Node({
       {/* biome-ignore lint/a11y/useSemanticElements: an SVG group cannot be a <button>; it carries the button role and keyboard handling instead */}
       <g
         className={`pm-node-g pm-node${selected ? " is-selected" : ""}`}
+        data-id={n.id}
         style={{ transform: `translate(${n.x - n.width / 2}px, ${n.y - n.height / 2}px)` }}
         role="button"
         tabIndex={0}
