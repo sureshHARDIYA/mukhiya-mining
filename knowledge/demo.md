@@ -58,3 +58,11 @@ A session starts on `Landing` at a random time in the window (default 30 days fr
 | Order confirmed | 5-30 | EXIT 1.00 |
 
 The pseudo-random generator is `seededRandom` (mulberry32), so the same seed gives the same log. Case ids are `s-0001`, `s-0002`, ... in base 36.
+
+## Real data
+
+`apps/demo/public/data/{dbank-prod,kompis-prod}.json` hold 90 days of Application Insights page views
+and custom events from the prod workspace, exported by `scripts/export-appinsights.py` (ids hashed,
+path ids collapsed to `:id`). The demo loads them through the same worker as the sample log, via
+`fromJson` with attributes `kind`, `browser`, `os`. Query the Log Analytics workspace, not the
+component: the component API returned only a sliver of the rows.

@@ -1,9 +1,16 @@
-import { type EventLog, generateSampleEventLog } from "@mukhiya-mining/core";
+import {
+  buildEventLog,
+  type EventLog,
+  fromJson,
+  generateSampleEventLog,
+} from "@mukhiya-mining/core";
 
-/** Builds the sample log off the main thread and transfers its buffers (zero copy). */
-self.onmessage = (e: MessageEvent<{ cases: number; seed: number }>) => {
+export type Job = { kind: "sample"; cases: number; seed: number } | { kind: "json"; url: string };
+
+/** Builds the log off the main thread and transfers its buffers (zero copy). */
+self.onmessage = async (e: MessageEvent<Job>) => {
   const t0 = performance.now();
-  const log = generateSampleEventLog({ cases: e.data.cases, seed: e.data.seed });
+  const log = await build(e.data);
   const ms = Math.round(performance.now() - t0);
   const buffers = [
     log.caseStart,
@@ -20,3 +27,17 @@ self.onmessage = (e: MessageEvent<{ cases: number; seed: number }>) => {
     buffers as Transferable[],
   );
 };
+
+async function build(job: Job): Promise<EventLog> {
+  if (job.kind === "sample") return generateSampleEventLog({ cases: job.cases, seed: job.seed });
+  const rows = await (await fetch(job.url)).json();
+  return buildEventLog(
+    fromJson(rows, {
+      caseId: "caseId",
+      activity: "activity",
+      timestamp: "timestamp",
+      resource: "resource",
+      attributes: ["kind", "browser", "os"],
+    }),
+  );
+}

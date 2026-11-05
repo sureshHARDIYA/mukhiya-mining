@@ -2,11 +2,25 @@ import { type EventLog, formatNumber } from "@mukhiya-mining/core";
 import { ExplorerSkeleton, ProcessExplorer } from "@mukhiya-mining/react";
 import "@mukhiya-mining/react/styles.css";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Job } from "./worker";
 
-const SIZES = [10_000, 100_000, 1_000_000];
+interface Dataset {
+  label: string;
+  job: Job;
+}
+
+/** Real logs are 90 days of Application Insights page views and custom events, ids hashed. */
+const DATASETS: Dataset[] = [
+  ...[10_000, 100_000, 1_000_000].map((cases) => ({
+    label: `${formatNumber(cases)} sessions`,
+    job: { kind: "sample", cases, seed: 3 } as Job,
+  })),
+  { label: "Dokumentbanken prod", job: { kind: "json", url: "/data/dbank-prod.json" } },
+  { label: "Kompis prod", job: { kind: "json", url: "/data/kompis-prod.json" } },
+];
 
 export function App() {
-  const [cases, setCases] = useState(SIZES[0] as number);
+  const [dataset, setDataset] = useState(DATASETS[0] as Dataset);
   const [log, setLog] = useState<EventLog | null>(null);
   const [status, setStatus] = useState("");
   const [dark, setDark] = useState(window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -18,17 +32,17 @@ export function App() {
 
   useEffect(() => {
     setLog(null);
-    setStatus(`Generating ${formatNumber(cases)} sessions in a worker…`);
+    setStatus(`Loading ${dataset.label} in a worker…`);
     started.current = performance.now();
     worker.onmessage = (e: MessageEvent<{ log: EventLog; ms: number }>) => {
       const total = Math.round(performance.now() - started.current);
       setLog(e.data.log);
       setStatus(
-        `${formatNumber(e.data.log.cases.length)} sessions · ${formatNumber(e.data.log.eventCount)} events · generated + indexed in ${e.data.ms} ms (${total} ms incl. transfer)`,
+        `${dataset.label} · ${formatNumber(e.data.log.cases.length)} sessions · ${formatNumber(e.data.log.eventCount)} events · loaded + indexed in ${e.data.ms} ms (${total} ms incl. transfer)`,
       );
     };
-    worker.postMessage({ cases, seed: 3 });
-  }, [cases, worker]);
+    worker.postMessage(dataset.job);
+  }, [dataset, worker]);
 
   return (
     <div
@@ -45,15 +59,15 @@ export function App() {
       <header style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
         <b>mukhiya-mining demo</b>
         <span style={{ display: "inline-flex", gap: 4 }}>
-          {SIZES.map((n) => (
+          {DATASETS.map((d) => (
             <button
-              key={n}
+              key={d.label}
               type="button"
-              onClick={() => setCases(n)}
-              disabled={n === cases}
+              onClick={() => setDataset(d)}
+              disabled={d === dataset}
               style={{ padding: "4px 10px" }}
             >
-              {formatNumber(n)} sessions
+              {d.label}
             </button>
           ))}
         </span>
