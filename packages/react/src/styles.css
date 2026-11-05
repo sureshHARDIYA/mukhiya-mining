@@ -406,7 +406,6 @@
 .pm-map.is-animating .pm-node-shape {
   fill: var(--pm-panel-strong);
   stroke: var(--pm-line);
-  transition: fill 0.25s ease;
 }
 .pm-map.is-animating .pm-node-shine {
   display: none;
@@ -417,7 +416,6 @@
 .pm-map.is-animating .pm-edge-stroke {
   stroke: var(--pm-line);
   stroke-width: 1.4px;
-  transition: stroke 0.25s ease;
 }
 .pm-map.is-animating .pm-edge-arrow {
   fill: var(--pm-line);
