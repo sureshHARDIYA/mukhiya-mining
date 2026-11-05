@@ -154,7 +154,7 @@ function activeCasesOverTime(
   end: number,
   bins: number,
 ): HistogramBin[] {
-  if (cases.length === 0 || !(end > start)) return [];
+  if (cases.length === 0 || Number.isNaN(end) || end <= start) return [];
   const width = (end - start) / bins;
   const counts = new Uint32Array(bins);
   for (const c of cases) {

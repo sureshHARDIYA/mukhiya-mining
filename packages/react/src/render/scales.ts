@@ -86,7 +86,7 @@ export function edgeWidth(t: number): number {
 
 /** Normalised 0..1 position of a value within [0, max]. Square root for durations keeps outliers readable. */
 export function normalise(value: number, max: number, show: Show): number {
-  if (!(max > 0) || Number.isNaN(value)) return Number.NaN;
+  if (Number.isNaN(max) || max <= 0 || Number.isNaN(value)) return Number.NaN;
   const t = Math.min(1, value / max);
   return isPerformanceShow(show) ? Math.sqrt(t) : t;
 }

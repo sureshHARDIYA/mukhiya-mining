@@ -26,7 +26,7 @@ export function durationStats(values: number[]): DurationStats {
     mean: total / values.length,
     median,
     min: values[0] as number,
-    max: values[values.length - 1] as number,
+    max: values.at(-1) as number,
   };
 }
 

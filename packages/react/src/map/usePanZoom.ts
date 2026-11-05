@@ -9,9 +9,11 @@ export interface Transform {
 export const MIN_ZOOM = 0.1;
 export const MAX_ZOOM = 4;
 
+const IDENTITY: Transform = { x: 0, y: 0, k: 1 };
+
 /** Pointer-drag pan, wheel zoom around the cursor, and fit-to-content. */
-export function usePanZoom(initial: Transform = { x: 0, y: 0, k: 1 }) {
-  const [transform, setTransform] = useState<Transform>(initial);
+export function usePanZoom(initial?: Transform) {
+  const [transform, setTransform] = useState<Transform>(initial ?? IDENTITY);
   const [panning, setPanning] = useState(false);
   const drag = useRef<{ x: number; y: number; tx: number; ty: number; moved: boolean } | null>(
     null,

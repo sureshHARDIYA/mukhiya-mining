@@ -197,5 +197,5 @@ function pick(random: () => number, weighted: [string, number][]): string {
     r -= weight;
     if (r <= 0) return value;
   }
-  return (weighted[weighted.length - 1] as [string, number])[0];
+  return (weighted.at(-1) as [string, number])[0];
 }

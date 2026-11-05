@@ -6,10 +6,10 @@ import type { AttributeColumn, AttributeValue, EventLog, ProcessEvent } from "./
  * one ProcessEvent object per row would dominate memory. `buildEventLog(events)` is a thin wrapper.
  */
 export class EventLogBuilder {
-  private caseIds: number[] = [];
-  private activityIds: number[] = [];
-  private starts: number[] = [];
-  private ends: number[] = [];
+  private readonly caseIds: number[] = [];
+  private readonly activityIds: number[] = [];
+  private readonly starts: number[] = [];
+  private readonly ends: number[] = [];
   private readonly caseDict = new Map<string, number>();
   private readonly activityDict = new Map<string, number>();
   readonly cases: string[] = [];

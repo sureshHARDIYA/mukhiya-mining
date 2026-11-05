@@ -32,7 +32,7 @@ const CHARTS: { id: string; label: string; axis: AxisKind }[] = [
   { id: "eventsPerCaseHistogram", label: "Events per case", axis: "count" },
 ];
 
-export function StatisticsView(props: StatisticsViewProps) {
+export function StatisticsView(props: Readonly<StatisticsViewProps>) {
   const [page, setPage] = useState<StatisticsPage>(props.defaultPage ?? "overview");
   const current = props.page ?? page;
   const go = (p: StatisticsPage) => {
@@ -40,7 +40,7 @@ export function StatisticsView(props: StatisticsViewProps) {
     props.onPageChange?.(p);
   };
   return (
-    <div className={`pm-stats${props.className ? ` ${props.className}` : ""}`} style={props.style}>
+    <div className={["pm-stats", props.className].filter(Boolean).join(" ")} style={props.style}>
       <nav className="pm-stats-nav" aria-label="Statistics views">
         <button type="button" aria-current={current === "overview"} onClick={() => go("overview")}>
           Overview<small>Global statistics</small>
@@ -57,19 +57,23 @@ export function StatisticsView(props: StatisticsViewProps) {
         </button>
       </nav>
       <div className="pm-stats-main">
-        {current === "overview" ? (
-          <OverviewPage />
-        ) : current === "activities" ? (
-          <ActivitiesPage />
-        ) : (
-          <CasesPage />
-        )}
+        <StatisticsPageBody page={current} />
       </div>
     </div>
   );
 }
 
-function Kpi({ value, label }: { value: string; label: string }) {
+function StatisticsPageBody({ page }: Readonly<{ page: StatisticsPage }>) {
+  if (page === "overview") return <OverviewPage />;
+  if (page === "activities") return <ActivitiesPage />;
+  return <CasesPage />;
+}
+
+function sortArrow(dir: SortDir): string {
+  return dir === "asc" ? " ▲" : " ▼";
+}
+
+function Kpi({ value, label }: Readonly<{ value: string; label: string }>) {
   return (
     <div className="pm-kpi">
       <b>{value}</b>
@@ -214,25 +218,27 @@ function Th<T>({
   col,
   sort,
   onSort,
-}: {
+}: Readonly<{
   label: string;
   col: keyof T;
   sort: { key: keyof T; dir: SortDir };
   onSort: (k: keyof T) => void;
-}) {
+}>) {
   const active = sort.key === col;
   return (
-    <th
-      onClick={() => onSort(col)}
-      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
-    >
+    <th onClick={() => onSort(col)} aria-sort={ariaSort(active, sort.dir)}>
       {label}
-      {active ? (sort.dir === "asc" ? " ▲" : " ▼") : ""}
+      {active ? sortArrow(sort.dir) : ""}
     </th>
   );
 }
 
-function Bar({ share }: { share: number }) {
+function ariaSort(active: boolean, dir: SortDir): "ascending" | "descending" | "none" {
+  if (!active) return "none";
+  return dir === "asc" ? "ascending" : "descending";
+}
+
+function Bar({ share }: Readonly<{ share: number }>) {
   return <span className="pm-cellbar" style={{ width: Math.max(2, Math.round(share * 90)) }} />;
 }
 
@@ -359,7 +365,7 @@ function CasesPage() {
           onClick={() => onSort(key)}
         >
           {label}
-          {sort.key === key ? (sort.dir === "asc" ? " ▲" : " ▼") : ""}
+          {sort.key === key ? sortArrow(sort.dir) : ""}
         </button>
       ))}
     </div>

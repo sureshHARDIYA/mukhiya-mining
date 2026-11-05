@@ -16,7 +16,15 @@ interface Props {
 }
 
 /** Token overlay (its own SVG above the map, no pointer events) plus the playback bar. */
-export function MapAnimation({ view, dfg, scene, transform, limit, host, onExit }: Props) {
+export function MapAnimation({
+  view,
+  dfg,
+  scene,
+  transform,
+  limit,
+  host,
+  onExit,
+}: Readonly<Props>) {
   const anim = useAnimation(view, dfg, true, limit);
   return (
     <>

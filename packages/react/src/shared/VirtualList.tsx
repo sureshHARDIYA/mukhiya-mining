@@ -17,7 +17,7 @@ export function VirtualList<T>({
   className,
   style,
   overscan = 6,
-}: VirtualListProps<T>) {
+}: Readonly<VirtualListProps<T>>) {
   const ref = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [height, setHeight] = useState(600);
@@ -45,7 +45,7 @@ export function VirtualList<T>({
   return (
     <div
       ref={measure}
-      className={`pm-vlist${className ? ` ${className}` : ""}`}
+      className={["pm-vlist", className].filter(Boolean).join(" ")}
       style={style}
       onScroll={onScroll}
     >

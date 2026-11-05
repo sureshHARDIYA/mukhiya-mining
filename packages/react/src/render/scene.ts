@@ -126,7 +126,9 @@ export function buildScene(dfg: Dfg, layout: Layout, options: SceneOptions): Sce
 function sceneNode(node: DfgNode, r: Resolved): SceneNode | null {
   const pos = r.byId.get(node.id);
   if (!pos) return null;
-  const kind = node.id === START_NODE ? "start" : node.id === END_NODE ? "end" : "activity";
+  let kind: "start" | "end" | "activity" = "activity";
+  if (node.id === START_NODE) kind = "start";
+  else if (node.id === END_NODE) kind = "end";
   const value = metricValue(node, r.show);
   const raw = kind === "activity" ? normalise(value, r.maxNode, r.show) : 0;
   const t = Number.isNaN(raw) ? 0 : raw;
@@ -176,11 +178,11 @@ function routeGeometry(
   label: Point | undefined,
 ): Geometry {
   const first = points[0] as Point;
-  const tip = points[points.length - 1] as Point;
+  const tip = points.at(-1) as Point;
   // Stop the stroke a little inside the head so the two overlap and read as one shape.
   const trimmed = shortenEnd(points, size * 0.7);
   const route = routePath(trimmed);
-  const tail = route.points.length > 1 ? (route.points[route.points.length - 2] as Point) : tip;
+  const tail = route.points.length > 1 ? (route.points.at(-2) as Point) : tip;
   const mid = midpoint(route.points);
   return {
     path: route.d,
@@ -235,16 +237,16 @@ function sceneEdge(
 
 function hash(text: string): string {
   let h = 0;
-  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < text.length; i++) h = (h * 31 + (text.codePointAt(i) ?? 0)) >>> 0;
   return h.toString(36);
 }
 
 function esc(text: string): string {
   return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function edgeMarkup(e: SceneEdge, selected: boolean): string {
@@ -262,11 +264,7 @@ function edgeMarkup(e: SceneEdge, selected: boolean): string {
   }
   parts.push(
     `<path d="${e.path}" fill="none" stroke="transparent" stroke-width="${Math.max(12, e.width + 8)}" class="pm-edge-hit"/>`,
-  );
-  parts.push(
     `<path d="${e.path}" fill="none" stroke="${stroke}" stroke-width="${e.width}" stroke-linecap="butt" stroke-linejoin="round"${e.dashed ? ' stroke-dasharray="4 4"' : ""}/>`,
-  );
-  parts.push(
     `<path d="${e.arrow}" fill="${color}" stroke="${color}" stroke-width=".6" stroke-linejoin="round"/>`,
   );
   if (e.label) {

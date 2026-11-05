@@ -14,7 +14,7 @@ export function smoothPath(points: readonly Point[]): string {
   if (points.length === 0) return "";
   const first = points[0] as Point;
   if (points.length === 1) return `M${first.x} ${first.y}`;
-  const last = points[points.length - 1] as Point;
+  const last = points.at(-1) as Point;
   if (points.length === 2) return `M${first.x} ${first.y} L${last.x} ${last.y}`;
   const p = [first, first, ...points, last, last];
   let d = `M${first.x} ${first.y}`;
@@ -41,8 +41,8 @@ export function smoothPath(points: readonly Point[]): string {
 export function shortenEnd(points: readonly Point[], by: number): Point[] {
   if (points.length < 2) return [...points];
   const result = [...points];
-  const last = result[result.length - 1] as Point;
-  const prev = result[result.length - 2] as Point;
+  const last = result.at(-1) as Point;
+  const prev = result.at(-2) as Point;
   const dx = last.x - prev.x;
   const dy = last.y - prev.y;
   const length = Math.hypot(dx, dy) || 1;
@@ -89,14 +89,14 @@ function dropCollinear(points: readonly Point[]): Point[] {
   if (points.length < 3) return [...points];
   const out: Point[] = [points[0] as Point];
   for (let i = 1; i < points.length - 1; i++) {
-    const a = out[out.length - 1] as Point;
+    const a = out.at(-1) as Point;
     const b = points[i] as Point;
     const c = points[i + 1] as Point;
     const cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
     const len = Math.hypot(c.x - a.x, c.y - a.y) || 1;
     if (Math.abs(cross) / len > 2) out.push(b);
   }
-  out.push(points[points.length - 1] as Point);
+  out.push(points.at(-1) as Point);
   return out;
 }
 

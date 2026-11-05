@@ -14,14 +14,14 @@ interface Props {
 }
 
 /** A pool of circles moved imperatively every frame. */
-export function TokenLayer({ scene, tracks, timeRef, playing, host, radius = 4 }: Props) {
+export function TokenLayer({ scene, tracks, timeRef, playing, host, radius = 4 }: Readonly<Props>) {
   const group = useRef<SVGGElement>(null);
   const geometry = useMemo<Geometry>(() => sampleGeometry(scene), [scene]);
   const pool = useMemo(() => tracks.map((t) => t.caseId), [tracks]);
   const targets = useMemo(() => {
     const map = new Map<string, Element>();
     for (const el of host?.querySelectorAll("[data-id]") ?? [])
-      map.set(el.getAttribute("data-id") as string, el);
+      map.set((el as HTMLElement | SVGElement).dataset.id as string, el);
     return map;
   }, [host]);
 

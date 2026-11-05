@@ -25,7 +25,7 @@ export function ExplorerSkeleton({
   height = 640,
   colorScheme,
   style,
-}: ExplorerSkeletonProps) {
+}: Readonly<ExplorerSkeletonProps>) {
   return (
     <div
       className="pm-root"

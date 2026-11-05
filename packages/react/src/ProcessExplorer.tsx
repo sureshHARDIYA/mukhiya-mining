@@ -34,7 +34,7 @@ export function ProcessExplorer({
   style,
   className,
   ...provider
-}: ProcessExplorerProps) {
+}: Readonly<ProcessExplorerProps>) {
   const [internal, setInternal] = useState<ExplorerTab>(defaultTab ?? "map");
   const current = tab ?? internal;
   const go = (t: ExplorerTab) => {
@@ -49,7 +49,7 @@ export function ProcessExplorer({
     <ProcessMiningProvider
       {...provider}
       style={rootStyle}
-      className={`${full.active ? "is-fullscreen" : ""}${className ? ` ${className}` : ""}`}
+      className={[full.active && "is-fullscreen", className].filter(Boolean).join(" ")}
       rootRef={full.ref}
     >
       <div className="pm-explorer" style={{ height: "100%" }}>
@@ -82,17 +82,17 @@ export function ProcessExplorer({
           ) : null}
         </div>
         <div className="pm-body">
-          {current === "map" ? (
-            <ProcessMap {...map} />
-          ) : current === "statistics" ? (
-            <StatisticsView />
-          ) : (
-            <CasesView />
-          )}
+          <TabBody tab={current} map={map} />
         </div>
       </div>
     </ProcessMiningProvider>
   );
+}
+
+function TabBody({ tab, map }: Readonly<{ tab: ExplorerTab; map: ProcessMapProps | undefined }>) {
+  if (tab === "map") return <ProcessMap {...map} />;
+  if (tab === "statistics") return <StatisticsView />;
+  return <CasesView />;
 }
 
 /** Case, activity and path counts, fed by the mounted map. */

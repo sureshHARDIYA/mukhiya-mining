@@ -18,7 +18,7 @@ export interface CasesViewProps {
 
 const ROW = 46;
 
-export function CasesView(props: CasesViewProps) {
+export function CasesView(props: Readonly<CasesViewProps>) {
   const { view, log, selection, setSelection } = useProcessModel();
   const variants = useMemo(() => computeVariants(view), [view]);
   const [variantId, setVariantId] = useState<number | null>(null);
@@ -34,7 +34,7 @@ export function CasesView(props: CasesViewProps) {
   const selectedCase = selection?.kind === "case" ? selection.caseId : (caseIds[0] ?? null);
 
   return (
-    <div className={`pm-cases${props.className ? ` ${props.className}` : ""}`} style={props.style}>
+    <div className={["pm-cases", props.className].filter(Boolean).join(" ")} style={props.style}>
       <div className="pm-list">
         <div className="pm-list-head">
           <span>Variants ({formatNumber(variants.length)})</span>
@@ -128,7 +128,7 @@ function listCases(
   return out;
 }
 
-function CaseDetail({ caseId }: { caseId: number }) {
+function CaseDetail({ caseId }: Readonly<{ caseId: number }>) {
   const { log, onCaseOpen } = useProcessModel();
   const [mode, setMode] = useState<"graph" | "table">("graph");
   const [start, end] = caseEvents(log, caseId);
@@ -140,12 +140,11 @@ function CaseDetail({ caseId }: { caseId: number }) {
     for (let e = start; e < end; e++) {
       const s = log.eventStart[e] as number;
       const d = (log.eventEnd[e] as number) - s;
-      const prevEnd =
-        e > start
-          ? Number.isNaN(log.eventEnd[e - 1] as number)
-            ? (log.eventStart[e - 1] as number)
-            : (log.eventEnd[e - 1] as number)
-          : Number.NaN;
+      let prevEnd = Number.NaN;
+      if (e > start) {
+        const previousEnd = log.eventEnd[e - 1] as number;
+        prevEnd = Number.isNaN(previousEnd) ? (log.eventStart[e - 1] as number) : previousEnd;
+      }
       const who =
         resource && (resource.codes[e] as number) >= 0
           ? String(resource.values[resource.codes[e] as number])

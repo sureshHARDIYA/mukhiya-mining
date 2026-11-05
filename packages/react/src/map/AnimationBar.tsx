@@ -26,7 +26,8 @@ interface Props {
 const SLOW_S = 600;
 const FAST_S = 10;
 
-export function AnimationBar(p: Props) {
+export function AnimationBar(p: Readonly<Props>) {
+  const sampledInfo = p.mode === "realtime" ? " (busiest period)" : "";
   const speedPosition = Math.log(SLOW_S / p.duration) / Math.log(SLOW_S / FAST_S);
   return (
     <div className="pm-anim-bar">
@@ -105,7 +106,7 @@ export function AnimationBar(p: Props) {
       </select>
       <span className="pm-anim-info">
         {p.sampled < p.total
-          ? `${formatNumber(p.sampled)} of ${formatNumber(p.total)} cases${p.mode === "realtime" ? " (busiest period)" : ""}`
+          ? `${formatNumber(p.sampled)} of ${formatNumber(p.total)} cases${sampledInfo}`
           : `${formatNumber(p.total)} cases`}
       </span>
       <button type="button" className="pm-btn" onClick={p.onExit}>
@@ -115,7 +116,7 @@ export function AnimationBar(p: Props) {
   );
 }
 
-function Density({ values }: { values: number[] }) {
+function Density({ values }: Readonly<{ values: number[] }>) {
   const max = Math.max(1, ...values);
   const W = 1000;
   const H = 28;

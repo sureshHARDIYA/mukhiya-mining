@@ -18,7 +18,7 @@ function formatAxis(value: number, axis: AxisKind): string {
 }
 
 /** Time series draw as an area, distributions as bars. Drawn at pixel size so text never stretches. */
-export function Chart({ bins, axis, title, height = 190 }: Props) {
+export function Chart({ bins, axis, title, height = 190 }: Readonly<Props>) {
   const ref = useRef<HTMLDivElement>(null);
   const gradientId = useId();
   const W = useElementWidth(ref);
@@ -31,7 +31,7 @@ export function Chart({ bins, axis, title, height = 190 }: Props) {
   const innerH = H - padT - padB;
   const max = Math.max(1, ...bins.map((b) => b.count));
   const first = bins[0];
-  const last = bins[bins.length - 1];
+  const last = bins.at(-1);
   const x = (i: number) => padL + (innerW * i) / Math.max(1, bins.length);
   const y = (count: number) => padT + innerH - (count / max) * innerH;
   const gridLines = [0.25, 0.5, 0.75, 1];

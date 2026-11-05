@@ -16,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="pm-popover-row">
       <span>{label}</span>
@@ -26,13 +26,13 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function Popover({ item, title, x, y, canFilter, onFilter, onClose }: Props) {
+export function Popover({ item, title, x, y, canFilter, onFilter, onClose }: Readonly<Props>) {
   const d = item.duration;
   const isNode = "activity" in item;
   return (
-    <div
+    <dialog
+      open
       className="pm-popover"
-      role="dialog"
       aria-label={title}
       style={{ left: x, top: y }}
       onKeyDown={(e) => e.key === "Escape" && onClose()}
@@ -73,6 +73,6 @@ export function Popover({ item, title, x, y, canFilter, onFilter, onClose }: Pro
           Close
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }

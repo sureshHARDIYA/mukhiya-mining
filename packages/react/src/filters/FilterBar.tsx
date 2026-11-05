@@ -26,13 +26,13 @@ export function describeFilter(f: Filter): string {
 }
 
 /** Active filters as removable chips plus a small "add filter" panel. */
-export function FilterBar(props: FilterBarProps) {
+export function FilterBar(props: Readonly<FilterBarProps>) {
   const { filters, setFilters, permissions, log } = useProcessModel();
   const [open, setOpen] = useState(false);
   const remove = (i: number) => setFilters(filters.filter((_, k) => k !== i));
   return (
     <div
-      className={`pm-filterbar${props.className ? ` ${props.className}` : ""}`}
+      className={["pm-filterbar", props.className].filter(Boolean).join(" ")}
       style={props.style}
     >
       {filters.map((f, i) => (
@@ -135,7 +135,7 @@ interface EditorProps {
   activities: string[];
 }
 
-function TimeframeEditor({ draft, patch }: EditorProps) {
+function TimeframeEditor({ draft, patch }: Readonly<Omit<EditorProps, "activities">>) {
   return (
     <>
       <div>
@@ -166,7 +166,7 @@ function TimeframeEditor({ draft, patch }: EditorProps) {
   );
 }
 
-function ActivityEditor({ draft, patch, activities }: EditorProps) {
+function ActivityEditor({ draft, patch, activities }: Readonly<EditorProps>) {
   return (
     <>
       <div className="pm-seg">
@@ -212,13 +212,13 @@ function ActivitySelect({
   value,
   activities,
   onChange,
-}: {
+}: Readonly<{
   id: string;
   label: string;
   value: string;
   activities: string[];
   onChange: (v: string) => void;
-}) {
+}>) {
   return (
     <div>
       <label className="pm-label" htmlFor={id}>
@@ -241,7 +241,7 @@ function ActivitySelect({
   );
 }
 
-function EndpointsEditor({ draft, patch, activities }: EditorProps) {
+function EndpointsEditor({ draft, patch, activities }: Readonly<EditorProps>) {
   return (
     <>
       <ActivitySelect
@@ -262,7 +262,7 @@ function EndpointsEditor({ draft, patch, activities }: EditorProps) {
   );
 }
 
-function VariantsEditor({ draft, patch }: EditorProps) {
+function VariantsEditor({ draft, patch }: Readonly<Omit<EditorProps, "activities">>) {
   return (
     <div>
       <label className="pm-label" htmlFor="pm-filter-top">
@@ -291,19 +291,19 @@ function AddFilterPanel({
   activities,
   onAdd,
   onClose,
-}: {
+}: Readonly<{
   activities: string[];
   onAdd: (f: Filter) => void;
   onClose: () => void;
-}) {
+}>) {
   const [kind, setKind] = useState<Kind>("activity");
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const patch = (p: Partial<Draft>) => setDraft((d) => ({ ...d, ...p }));
-  const sorted = [...activities].sort();
+  const sorted = [...activities].sort((a, b) => a.localeCompare(b));
   const filter = buildFilter(kind, draft);
   const Editor = EDITORS[kind];
   return (
-    <div className="pm-filter-panel" role="dialog" aria-label="Add filter">
+    <dialog open className="pm-filter-panel" aria-label="Add filter">
       <div>
         <label className="pm-label" htmlFor="pm-filter-kind">
           Filter
@@ -334,6 +334,6 @@ function AddFilterPanel({
           Add
         </button>
       </footer>
-    </div>
+    </dialog>
   );
 }

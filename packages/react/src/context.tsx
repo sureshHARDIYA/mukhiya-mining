@@ -63,7 +63,7 @@ export interface ProcessMiningContextValue {
 const Context = createContext<ProcessMiningContextValue | null>(null);
 const NO_FILTERS: Filter[] = [];
 
-export function ProcessMiningProvider(props: ProcessMiningProviderProps) {
+export function ProcessMiningProvider(props: Readonly<ProcessMiningProviderProps>) {
   const [filters, setFilters] = useControllable(
     props.filters,
     props.defaultFilters ?? NO_FILTERS,
@@ -113,7 +113,7 @@ export function ProcessMiningProvider(props: ProcessMiningProviderProps) {
     <Context.Provider value={value}>
       <div
         ref={props.rootRef}
-        className={`pm-root${props.className ? ` ${props.className}` : ""}`}
+        className={["pm-root", props.className].filter(Boolean).join(" ")}
         data-theme={props.colorScheme}
         style={style}
       >

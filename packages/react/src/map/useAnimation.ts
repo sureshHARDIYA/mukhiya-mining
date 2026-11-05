@@ -53,7 +53,9 @@ export function useAnimation(
     () => (enabled ? selectCases(view, limit, mode === "realtime" ? "window" : "spread") : null),
     [view, enabled, limit, mode],
   );
-  const rawSpan = !selection ? 1 : mode === "synced" ? selection.syncedSpan : selection.span;
+  const syncedMode = mode === "synced";
+  let rawSpan = 1;
+  if (selection) rawSpan = syncedMode ? selection.syncedSpan : selection.span;
   const factor = Math.max(1, rawSpan / (duration * 1000));
   const built = useMemo(
     () =>
@@ -73,7 +75,8 @@ export function useAnimation(
       : built.tracks;
   }, [built, mode]);
   const origin = mode === "synced" || !built ? 0 : built.timeStart;
-  const span = !built ? 1 : mode === "synced" ? built.maxDuration : built.timeEnd - built.timeStart;
+  let span = 1;
+  if (built) span = syncedMode ? built.maxDuration : built.timeEnd - built.timeStart;
 
   // Mode or data changes restart the clock from the beginning.
   const resetKey = `${origin}:${span}`;

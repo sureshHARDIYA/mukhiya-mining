@@ -158,7 +158,7 @@ function buildTrack(
   for (let e = from; e < to; e++) {
     const a = log.eventActivity[e] as number;
     if (hidden.has(a)) continue;
-    const previous = steps[steps.length - 1];
+    const previous = steps.at(-1);
     let start = (log.eventStart[e] as number) + shift;
     if (previous && start - previous.end < stretch.travel) {
       shift += previous.end + stretch.travel - start;
@@ -172,7 +172,7 @@ function buildTrack(
   }
   if (steps.length === 0) return null;
   const first = steps[0] as Step;
-  const last = steps[steps.length - 1] as Step;
+  const last = steps.at(-1) as Step;
   return {
     caseId,
     steps,
@@ -260,7 +260,7 @@ export function tokenPosition(track: Track, t: number, g: Geometry): TokenPlace 
     if (next && t < next.start)
       return travelling(g, step.node, next.node, (t - step.end) / (next.start - step.end));
   }
-  const last = steps[steps.length - 1] as Step;
+  const last = steps.at(-1) as Step;
   return travelling(g, last.node, END_NODE, (t - last.end) / track.approach);
 }
 
@@ -271,8 +271,9 @@ export function activityDensity(
   span: number,
   bins = 160,
 ): number[] {
+  // NaN must take this branch, so do not rewrite as `span <= 0` alone.
+  if (Number.isNaN(span) || span <= 0) return new Array<number>(bins).fill(0);
   const counts = new Array<number>(bins).fill(0);
-  if (!(span > 0)) return counts;
   for (const track of tracks) {
     const from = Math.max(0, Math.floor(((track.start - origin) / span) * bins));
     const to = Math.min(bins - 1, Math.floor(((track.end - origin) / span) * bins));

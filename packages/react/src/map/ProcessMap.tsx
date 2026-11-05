@@ -42,7 +42,7 @@ export interface ProcessMapProps {
 
 const DEFAULT_DETAIL: Detail = { activities: 0.4, paths: 0.2 };
 
-export function ProcessMap(props: ProcessMapProps) {
+export function ProcessMap(props: Readonly<ProcessMapProps>) {
   const { view, selection, setSelection, filters, setFilters, permissions, setMapTools } =
     useProcessModel();
   const { metric, setMetric, setShow, detail, setDetail, secondary, setSecondary, effectiveShow } =
@@ -153,7 +153,7 @@ export function ProcessMap(props: ProcessMapProps) {
 
   return (
     <div
-      className={`pm-map${animating ? " is-animating" : ""}${props.className ? ` ${props.className}` : ""}`}
+      className={["pm-map", animating && "is-animating", props.className].filter(Boolean).join(" ")}
       style={props.style}
     >
       <div ref={viewportRef} className={`pm-map-viewport${pz.panning ? " is-panning" : ""}`}>
@@ -313,7 +313,7 @@ function MapTools({
   );
 }
 
-function useMapSettings(props: ProcessMapProps) {
+function useMapSettings(props: Readonly<ProcessMapProps>) {
   const [metric, setMetric] = useControllable(
     props.metric,
     props.defaultMetric ?? "frequency",

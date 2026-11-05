@@ -38,7 +38,7 @@ export function MapRail({
   onSecondary,
   maxNode,
   footer,
-}: Props) {
+}: Readonly<Props>) {
   const palette = metric === "frequency" ? FREQUENCY_PALETTE : PERFORMANCE_PALETTE;
   const shows = metric === "frequency" ? FREQUENCY_SHOWS : PERFORMANCE_SHOWS;
   const secondaryOptions = metric === "frequency" ? PERFORMANCE_SHOWS : FREQUENCY_SHOWS;

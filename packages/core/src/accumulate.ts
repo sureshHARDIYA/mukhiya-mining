@@ -78,7 +78,7 @@ export function typedDurationStats(values: Float64Array): DurationStats {
   if (values.length === 0) return durationStats([]);
   values.sort();
   let total = 0;
-  for (let i = 0; i < values.length; i++) total += values[i] as number;
+  for (const v of values) total += v;
   const mid = values.length >> 1;
   const median =
     values.length % 2 === 1
@@ -90,6 +90,6 @@ export function typedDurationStats(values: Float64Array): DurationStats {
     mean: total / values.length,
     median,
     min: values[0] as number,
-    max: values[values.length - 1] as number,
+    max: values.at(-1) as number,
   };
 }
