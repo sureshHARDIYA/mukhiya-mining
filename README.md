@@ -122,6 +122,16 @@ publishes both packages to npm with provenance and creates a GitHub release.
 See [CONTRIBUTING.md](CONTRIBUTING.md). `main` is protected: changes arrive by pull request with green CI
 and a maintainer review. Security reports go through [SECURITY.md](SECURITY.md).
 
+## Disclaimer
+
+pathminer is open-source software provided on an "as is" basis, without warranty of any kind, as set out
+in the [MIT license](LICENSE). The author is not responsible for any bugs, defects or losses arising from
+its use, and does not offer service level agreements (SLAs), guaranteed support or response times.
+Evaluate the software against your own requirements before relying on it in production.
+
+Contributions are very welcome. Bug reports, fixes, documentation improvements and feature ideas all help;
+see [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+
 ## License
 
 [MIT](LICENSE)
