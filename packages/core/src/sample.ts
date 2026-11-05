@@ -139,6 +139,19 @@ export function generateSampleEventLog(options: SampleOptions = {}): EventLog {
   return builder.build();
 }
 
+/** Session start with a weekly and daily rhythm: quieter weekends, peaks around 12:00 and 20:00. */
+function sessionOffset(random: () => number, days: number): number {
+  for (;;) {
+    const day = Math.floor(random() * days);
+    const hour = random() * 24;
+    const weekday = (day + 3) % 7; // 2026-10-01 is a Thursday
+    const weekend = weekday >= 5 ? 0.55 : 1;
+    const daily =
+      0.15 + 0.5 * Math.exp(-((hour - 12) ** 2) / 8) + 0.6 * Math.exp(-((hour - 20) ** 2) / 6);
+    if (random() < weekend * daily) return (day * 24 + hour) * 3_600_000;
+  }
+}
+
 type Emit = (
   caseId: string,
   page: string,
@@ -166,7 +179,7 @@ function walkSample(options: SampleOptions, emit: Emit): void {
       ["email", 0.15],
       ["direct", 0.1],
     ]);
-    let time = start + random() * days * 86_400_000;
+    let time = start + sessionOffset(random, days);
     let page = "Landing";
     for (let i = 0; i < maxEventsPerCase && page !== "EXIT"; i++) {
       const step = JOURNEY[page] as Step;

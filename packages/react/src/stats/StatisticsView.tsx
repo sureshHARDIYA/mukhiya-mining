@@ -4,6 +4,7 @@ import {
   computeActivityStats,
   computeCaseStats,
   computeOverview,
+  computeVariants,
   formatDateTime,
   formatDuration,
   formatNumber,
@@ -82,38 +83,112 @@ function OverviewPage() {
   const overview = useMemo(() => computeOverview(view), [view]);
   const [chart, setChart] = useState(CHARTS[0] as (typeof CHARTS)[number]);
   const bins = overview[chart.id as "eventsOverTime"];
+  const [table, setTable] = useState<"cases" | "variants">("cases");
   return (
-    <div className="pm-stats-head">
-      <div className="pm-chart-tabs">
-        {CHARTS.map((c) => (
+    <div className="pm-stats-main">
+      <div className="pm-stats-head">
+        <div className="pm-chart-tabs">
+          {CHARTS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="pm-chip is-add"
+              aria-pressed={chart.id === c.id}
+              style={
+                chart.id === c.id
+                  ? { borderColor: "var(--pm-accent)", color: "var(--pm-accent)" }
+                  : undefined
+              }
+              onClick={() => setChart(c)}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+        <Chart bins={bins} axis={chart.axis} title={chart.label} />
+        <div className="pm-kpis">
+          <Kpi value={formatNumber(overview.cases)} label="cases" />
+          <Kpi value={formatNumber(overview.events)} label="events" />
+          <Kpi value={formatNumber(overview.activities)} label="activities" />
+          <Kpi value={formatNumber(overview.variants)} label="variants" />
+          <Kpi value={formatDuration(overview.caseDuration.median)} label="median case duration" />
+          <Kpi value={formatDuration(overview.caseDuration.mean)} label="mean case duration" />
+          <Kpi value={formatNumber(overview.eventsPerCase.mean)} label="events per case" />
+          <Kpi value={formatDateTime(overview.start)} label="first event" />
+          <Kpi value={formatDateTime(overview.end)} label="last event" />
+        </div>
+        <div className="pm-seg" style={{ justifySelf: "center" }}>
           <button
-            key={c.id}
             type="button"
-            className="pm-chip is-add"
-            aria-pressed={chart.id === c.id}
-            style={
-              chart.id === c.id
-                ? { borderColor: "var(--pm-accent)", color: "var(--pm-accent)" }
-                : undefined
-            }
-            onClick={() => setChart(c)}
+            className="pm-btn"
+            aria-pressed={table === "cases"}
+            onClick={() => setTable("cases")}
           >
-            {c.label}
+            Cases ({formatNumber(overview.cases)})
           </button>
-        ))}
+          <button
+            type="button"
+            className="pm-btn"
+            aria-pressed={table === "variants"}
+            onClick={() => setTable("variants")}
+          >
+            Variants ({formatNumber(overview.variants)})
+          </button>
+        </div>
       </div>
-      <Chart bins={bins} axis={chart.axis} title={chart.label} />
-      <div className="pm-kpis">
-        <Kpi value={formatNumber(overview.cases)} label="cases" />
-        <Kpi value={formatNumber(overview.events)} label="events" />
-        <Kpi value={formatNumber(overview.activities)} label="activities" />
-        <Kpi value={formatNumber(overview.variants)} label="variants" />
-        <Kpi value={formatDuration(overview.caseDuration.median)} label="median case duration" />
-        <Kpi value={formatDuration(overview.caseDuration.mean)} label="mean case duration" />
-        <Kpi value={formatNumber(overview.eventsPerCase.mean)} label="events per case" />
-        <Kpi value={formatDateTime(overview.start)} label="first event" />
-        <Kpi value={formatDateTime(overview.end)} label="last event" />
+      {table === "cases" ? <CasesPage /> : <VariantsTable />}
+    </div>
+  );
+}
+
+function VariantsTable() {
+  const { view, setSelection, selection } = useProcessModel();
+  const variants = useMemo(() => computeVariants(view), [view]);
+  const maxCases = variants[0]?.caseIds.length ?? 1;
+  const cols = "1fr 1fr 1fr 1fr 3fr";
+  return (
+    <div className="pm-stats-main">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: cols,
+          background: "var(--pm-panel)",
+          borderBottom: "1px solid var(--pm-line)",
+          fontWeight: 600,
+          fontSize: 12,
+          padding: "6px 10px",
+        }}
+      >
+        <span>Variant</span>
+        <span>Cases</span>
+        <span>Share</span>
+        <span>Events</span>
+        <span>Sequence</span>
       </div>
+      <VirtualList
+        items={variants}
+        rowHeight={28}
+        style={{ flex: 1 }}
+        render={(v, i) => (
+          <button
+            type="button"
+            className={`pm-list-row${selection?.kind === "variant" && selection.id === v.id ? " is-selected" : ""}`}
+            style={{ display: "grid", gridTemplateColumns: cols, padding: "0 10px" }}
+            onClick={() => setSelection({ kind: "variant", id: v.id })}
+          >
+            <span>Variant {i + 1}</span>
+            <span>
+              {formatNumber(v.caseIds.length)}
+              <Bar share={v.caseIds.length / maxCases} />
+            </span>
+            <span>{formatPercent(v.share)}</span>
+            <span>{v.activities.length}</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {v.activities.map((a) => view.log.activities[a]).join(" → ")}
+            </span>
+          </button>
+        )}
+      />
     </div>
   );
 }

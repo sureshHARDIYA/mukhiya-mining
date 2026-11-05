@@ -451,7 +451,8 @@
 }
 .pm-chart {
   width: 100%;
-  height: 180px;
+  overflow: hidden;
+  line-height: 0;
   background: var(--pm-panel);
   border: 1px solid var(--pm-line);
   border-radius: 6px;

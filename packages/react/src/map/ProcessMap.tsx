@@ -5,6 +5,7 @@ import {
   type DfgNode,
   END_NODE,
   type Filter,
+  formatNumber,
   layoutDfg,
   START_NODE,
   selectEdges,
@@ -161,6 +162,7 @@ export function ProcessMap(props: ProcessMapProps) {
             Fit
           </button>
           <span>
+            {formatNumber(view.caseCount)} of {formatNumber(view.log.cases.length)} cases ·{" "}
             {dfg.nodes.length - 2} activities · {dfg.edges.length} paths
           </span>
         </div>
