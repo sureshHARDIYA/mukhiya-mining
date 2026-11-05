@@ -40,7 +40,7 @@ export interface ProcessMapProps {
   style?: CSSProperties | undefined;
 }
 
-const DEFAULT_DETAIL: Detail = { activities: 1, paths: 0.2 };
+const DEFAULT_DETAIL: Detail = { activities: 0.4, paths: 0.2 };
 
 export function ProcessMap(props: ProcessMapProps) {
   const { view, selection, setSelection, filters, setFilters, permissions, setMapTools } =

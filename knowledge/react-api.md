@@ -71,6 +71,7 @@ Props = `ProcessMiningProviderProps` without `children`, plus:
 | --- | --- | --- |
 | `tab` / `defaultTab` / `onTabChange` | `ExplorerTab` = `"map" \| "statistics" \| "cases"` | Default tab `"map"`. Note: `tab` overrides internal state; `onTabChange` fires on click. |
 | `map` | `ProcessMapProps` | Passed to `ProcessMap`. |
+| `fullscreen` | `boolean` | Shows the "Full screen" button in the tab row. Default `true`. The explorer takes the whole screen through the browser Fullscreen API when allowed, else as a fixed overlay above the host (`.pm-root.is-fullscreen`); Esc or the button leaves. |
 | `height` | `number \| string` | Default `640`. Applied as root height. The explorer has `min-height: 480px`. |
 
 ```tsx
@@ -85,7 +86,7 @@ Needs a provider. Renders the SVG viewport and the right rail. Nothing floats ov
 | --- | --- | --- |
 | `metric` / `defaultMetric` / `onMetricChange` | `Metric` = `"frequency" \| "performance"` | Default `"frequency"`. |
 | `show` | `Show` | Value displayed. If set, it overrides the internal choice (the rail select then has no effect). Default derived from metric. |
-| `detail` / `defaultDetail` / `onDetailChange` | `Detail` = `{ activities: number; paths: number }` (0..1) | Default `{ activities: 1, paths: 0.2 }`. |
+| `detail` / `defaultDetail` / `onDetailChange` | `Detail` = `{ activities: number; paths: number }` (0..1) | Default `{ activities: 0.4, paths: 0.2 }`. |
 | `secondary` | `Show \| null` | **Initial** secondary metric only (read once into state). |
 | `showRail` | `boolean` | `false` hides the rail. |
 | `animation` | `boolean` | Shows the "Animate" button in the rail footer. See [Animation](#animation). Default off. |

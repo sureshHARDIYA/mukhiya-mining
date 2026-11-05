@@ -29,6 +29,7 @@ account, one runtime dependency (`@dagrejs/dagre`), and it stays smooth with mil
 - **Filters**: timeframe, keep/remove activities, start and end activities, top variants.
   Controlled or uncontrolled, so the host can persist them in a URL or a store.
 - **Export**: PNG, SVG or PDF of the map at the current detail level.
+- **Full screen**: one click gives the map the whole screen, Esc brings the page back.
 - **Theming**: everything is a `--pm-*` CSS variable; light and dark included.
 - **Performance**: a columnar, typed-array event log. One million sessions (4.8 M events) index in
   about a second, filters apply in under 50 ms, replay runs at 60 fps.

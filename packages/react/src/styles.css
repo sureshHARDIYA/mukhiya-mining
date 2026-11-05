@@ -66,6 +66,21 @@
   border-radius: var(--pm-radius);
   overflow: hidden;
 }
+/* Full screen: the browser's (:fullscreen) or the overlay fallback (.is-fullscreen). */
+.pm-root.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: var(--pm-bg);
+}
+.pm-root:fullscreen {
+  background: var(--pm-bg);
+}
+.pm-root.is-fullscreen .pm-explorer,
+.pm-root:fullscreen .pm-explorer {
+  border: 0;
+  border-radius: 0;
+}
 .pm-tabs {
   display: flex;
   align-items: center;

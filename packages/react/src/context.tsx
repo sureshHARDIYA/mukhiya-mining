@@ -3,6 +3,7 @@ import {
   type CSSProperties,
   createContext,
   type ReactNode,
+  type Ref,
   useContext,
   useMemo,
   useState,
@@ -35,6 +36,8 @@ export interface ProcessMiningProviderProps {
   onCaseOpen?: ((caseId: string) => void) | undefined;
   className?: string | undefined;
   style?: CSSProperties | undefined;
+  /** The root element, for hosts that need it (full screen). */
+  rootRef?: Ref<HTMLDivElement> | undefined;
   children: ReactNode;
 }
 
@@ -109,6 +112,7 @@ export function ProcessMiningProvider(props: ProcessMiningProviderProps) {
   return (
     <Context.Provider value={value}>
       <div
+        ref={props.rootRef}
         className={`pm-root${props.className ? ` ${props.className}` : ""}`}
         data-theme={props.colorScheme}
         style={style}
