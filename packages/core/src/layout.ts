@@ -1,5 +1,5 @@
 import dagre from "@dagrejs/dagre";
-import type { Dfg } from "./types";
+import { type Dfg, END_NODE, START_NODE } from "./types";
 
 export interface LayoutNode {
   id: string;
@@ -75,7 +75,51 @@ export function layoutDfg(dfg: Dfg, options: LayoutOptions = {}): Layout {
     const e = graph.edge(edge.source, edge.target);
     return { id: edge.id, source: edge.source, target: edge.target, points: e?.points ?? [] };
   });
+  if (direction === "TB") pinEndpoints(nodes, edges, rankSeparation);
   return normaliseBounds(nodes, edges, 20);
+}
+
+/** Start sits centred above the drawing and End centred below it, whatever dagre's ordering chose. */
+function pinEndpoints(nodes: LayoutNode[], edges: LayoutEdge[], rankSeparation: number): void {
+  const start = nodes.find((n) => n.id === START_NODE);
+  const end = nodes.find((n) => n.id === END_NODE);
+  const activities = nodes.filter((n) => n.id !== START_NODE && n.id !== END_NODE);
+  if (activities.length === 0) return;
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  for (const n of activities) {
+    minX = Math.min(minX, n.x - n.width / 2);
+    maxX = Math.max(maxX, n.x + n.width / 2);
+    minY = Math.min(minY, n.y - n.height / 2);
+    maxY = Math.max(maxY, n.y + n.height / 2);
+  }
+  const centreX = (minX + maxX) / 2;
+  if (start) {
+    start.x = centreX;
+    start.y = minY - rankSeparation - start.height / 2;
+  }
+  if (end) {
+    end.x = centreX;
+    end.y = maxY + rankSeparation + end.height / 2;
+  }
+  // Their dagre routes aimed at the old positions; replace them with straight runs the renderer curves.
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  for (const e of edges) {
+    const target = byId.get(e.target);
+    const source = byId.get(e.source);
+    if (start && e.source === START_NODE && target)
+      e.points = [
+        { x: start.x, y: start.y + start.height / 2 },
+        { x: target.x, y: target.y - target.height / 2 },
+      ];
+    if (end && e.target === END_NODE && source)
+      e.points = [
+        { x: source.x, y: source.y + source.height / 2 },
+        { x: end.x, y: end.y - end.height / 2 },
+      ];
+  }
 }
 
 /** dagre reports node extents only; edge control points can lie outside. Re-fit the bounds. */
