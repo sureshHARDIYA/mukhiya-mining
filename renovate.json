@@ -9,7 +9,11 @@
   "vulnerabilityAlerts": { "enabled": true, "schedule": ["at any time"] },
   "packageRules": [
     { "matchDepTypes": ["peerDependencies"], "enabled": false },
-    { "matchUpdateTypes": ["minor", "patch"], "matchDepTypes": ["devDependencies"], "automerge": true },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    },
     { "matchPackageNames": ["@dagrejs/dagre"], "automerge": false }
   ]
 }
