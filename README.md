@@ -42,8 +42,8 @@ Controlled filters, selection and detail levels follow the usual `value` / `defa
 
 ## Animation
 
-`ProcessMap` can replay the log: one token per case moves along the paths while the rest of the map
-fades. Turn it on with a prop; the toolbar then shows an "Animate" button.
+`ProcessMap` can replay the log: one token per case moves along the paths; the map turns grey and
+only the nodes and paths carrying a token light up, as in the reference tool. Turn it on with a prop; the toolbar then shows an "Animate" button.
 
 ```tsx
 <ProcessExplorer log={log} map={{ animation: true, animationLimit: 4000 }} />

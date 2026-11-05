@@ -19,7 +19,7 @@
   --pm-bar: #5b8fc4;
   --pm-token: #f6b21b;
   --pm-token-stroke: #5a3b00;
-  --pm-active-path: #c0392b;
+  --pm-active-path: #a93226;
   --pm-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --pm-radius: 8px;
   --pm-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -401,43 +401,43 @@
   transition: opacity 0.25s ease;
 }
 
-/* Animation: fade the map, keep full colour on what carries a token */
+/* Animation, the reference tool's pattern: the map goes flat grey; a node holding a token turns solid blue and a
+   path carrying one turns thin dark red. Flat colours, not opacity, so text stays legible. */
 .pm-map.is-animating .pm-node-shape {
-  opacity: 0.32;
-  transition: opacity 0.35s ease;
+  fill: var(--pm-panel-strong);
+  stroke: var(--pm-line);
+  transition: fill 0.25s ease;
+}
+.pm-map.is-animating .pm-node-shine {
+  display: none;
 }
 .pm-map.is-animating .pm-node text {
-  opacity: 0.5;
-  transition: opacity 0.35s ease;
+  fill: var(--pm-muted);
 }
 .pm-map.is-animating .pm-edge-stroke {
-  opacity: 0.28;
-  transition:
-    opacity 0.35s ease,
-    stroke 0.35s ease;
+  stroke: var(--pm-line);
+  stroke-width: 1.4px;
+  transition: stroke 0.25s ease;
 }
 .pm-map.is-animating .pm-edge-arrow {
-  opacity: 0.28;
-  transition:
-    opacity 0.35s ease,
-    fill 0.35s ease,
-    stroke 0.35s ease;
+  fill: var(--pm-line);
+  stroke: var(--pm-line);
 }
 .pm-map.is-animating .pm-edge-label {
   display: none;
 }
 .pm-map.is-animating .pm-node.is-active .pm-node-shape {
-  opacity: 1;
+  fill: var(--pm-accent);
+  stroke: var(--pm-accent);
 }
 .pm-map.is-animating .pm-node.is-active text {
-  opacity: 1;
+  fill: var(--pm-accent-fg);
 }
 .pm-map.is-animating .pm-edge.is-active .pm-edge-stroke {
-  opacity: 1;
   stroke: var(--pm-active-path);
+  stroke-width: 1.8px;
 }
 .pm-map.is-animating .pm-edge.is-active .pm-edge-arrow {
-  opacity: 1;
   fill: var(--pm-active-path);
   stroke: var(--pm-active-path);
 }

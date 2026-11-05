@@ -34,6 +34,7 @@ export interface AnimationState {
 /** Wall-clock time a hop must take on screen, so tokens travel instead of teleport. */
 const TRAVEL_WALL_MS = 500;
 const APPROACH_WALL_MS = 400;
+const DWELL_WALL_MS = 350;
 export const DEFAULT_DURATION_S = 60;
 
 export function useAnimation(
@@ -60,6 +61,7 @@ export function useAnimation(
         ? tracksFor(view, dfg, selection, {
             travel: TRAVEL_WALL_MS * factor,
             approach: APPROACH_WALL_MS * factor,
+            dwell: DWELL_WALL_MS * factor,
           })
         : null,
     [view, dfg, selection, factor],

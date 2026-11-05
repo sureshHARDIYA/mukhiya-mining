@@ -172,7 +172,14 @@ const Node = memo(function Node({
           stroke={stroke}
           strokeWidth="1"
         />
-        <rect width={n.width} height={n.height} rx="6" fill="url(#pm-shine)" pointerEvents="none" />
+        <rect
+          className="pm-node-shine"
+          width={n.width}
+          height={n.height}
+          rx="6"
+          fill="url(#pm-shine)"
+          pointerEvents="none"
+        />
         <text x={n.width / 2} y={n.height / 2 - 3} textAnchor="middle" fontSize="12" fill={text}>
           {n.name}
         </text>

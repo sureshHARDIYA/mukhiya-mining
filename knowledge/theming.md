@@ -70,7 +70,7 @@ The node and edge colour scales for the metric are **not** CSS variables: they c
 | `.pm-stats`, `.pm-stats-nav`, `.pm-stats-main`, `.pm-stats-head`, `.pm-chart-tabs`, `.pm-chart`, `.pm-kpis`, `.pm-kpi` | Statistics view. |
 | `.pm-table`, `.pm-cellbar` | Tables and inline bars. |
 | `.pm-map.is-animating` | Set on `.pm-map` while the replay is on. Fades the map (see below). |
-| `.pm-node.is-active`, `.pm-edge.is-active` | Added by `TokenLayer` to the node or edge that currently carries at least one token. Only styled under `.is-animating`. |
+| `.pm-node.is-active`, `.pm-edge.is-active` | Added by `TokenLayer` to the node or edge that currently carries at least one token. Styled under `.is-animating` (blue node, red path). |
 | `.pm-anim-overlay`, `.pm-token` | Token overlay `<svg>` and each token circle (fill `#f6b21b`, stroke `#5a3b00`; fixed colours, not tokens). |
 | `.pm-anim-bar`, `.pm-anim-play`, `.pm-anim-timeline`, `.pm-anim-density`, `.pm-anim-seek`, `.pm-anim-clock`, `.pm-anim-speed`, `.pm-anim-factor`, `.pm-anim-info` | Playback bar parts. |
 | `.pm-skeleton`, `.pm-sk`, `.pm-sk-tab`, `.pm-sk-chip`, `.pm-sk-map`, `.pm-sk-node`, `.pm-sk-message` | `ExplorerSkeleton` (shimmer animation, disabled under `prefers-reduced-motion`). |
@@ -84,5 +84,5 @@ Other CSS behaviour: node hover darkens the node (`brightness(0.86)`); edge hove
 ## Animation styling
 
 - The replay highlight colours are fixed values in the stylesheet, not `--pm-*` tokens: token fill `#f6b21b`, stroke `#5a3b00`; active edge stroke and arrow `#c0392b`. They do not change in dark mode.
-- Under `.pm-map.is-animating` the map fades instead of turning grey: `.pm-node-shape` opacity 0.32, node text 0.5, `.pm-edge-stroke` and `.pm-edge-arrow` 0.28 (0.35 s transition), edge labels are hidden. Active nodes and edges return to opacity 1; active edges turn `#c0392b`. Nodes keep their metric colours, so the map's colours still read.
+- Under `.pm-map.is-animating` the map follows the reference tool's replay look with flat colours, never opacity: `.pm-node-shape` fills `--pm-panel-strong` with a `--pm-line` border, the shine overlay is hidden, node text is `--pm-muted`, edges become `--pm-line` at 1.4 px with grey arrows, edge labels are hidden. `.pm-node.is-active` fills `--pm-accent` with `--pm-accent-fg` text; `.pm-edge.is-active` strokes `--pm-active-path` at 1.8 px.
 - Highlighting is only CSS plus one class toggle per frame; no inline styles are written to map nodes.

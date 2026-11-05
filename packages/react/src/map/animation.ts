@@ -37,6 +37,8 @@ export interface Stretch {
   travel: number;
   /** Log time the token spends entering from Start and leaving to End. */
   approach: number;
+  /** Minimum log time a token stays on an activity, so the node visibly lights up. */
+  dwell?: number;
 }
 
 export interface CaseSelection {
@@ -164,7 +166,9 @@ function buildTrack(
     }
     const rawEnd = log.eventEnd[e] as number;
     const end = Number.isNaN(rawEnd) ? start : rawEnd + shift;
-    steps.push({ node: String(a), start, end: Math.max(start, end) });
+    const minEnd = start + (stretch.dwell ?? 0);
+    if (end < minEnd) shift += minEnd - end;
+    steps.push({ node: String(a), start, end: Math.max(end, minEnd) });
   }
   if (steps.length === 0) return null;
   const first = steps[0] as Step;

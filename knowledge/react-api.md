@@ -270,7 +270,7 @@ type AnimationMode = "realtime" | "synced";
 type Sampling = "window" | "spread";
 interface Step { node: string; start: number; end: number }            // node = String(activityId)
 interface Track { caseId: number; steps: Step[]; approach: number; start: number; end: number }
-interface Stretch { travel: number; approach: number }                  // log ms: min hop time, Start/End hop time
+interface Stretch { travel: number; approach: number; dwell?: number }  // log ms: min hop time, Start/End hop time, min time on a node
 interface CaseSelection { ids: number[]; span: number; syncedSpan: number; total: number }
 interface Tracks { tracks: Track[]; timeStart: number; timeEnd: number; maxDuration: number; sampled: number; total: number }
 interface TokenPlace extends Point { on: string }                       // node id while dwelling, edge id while travelling
@@ -290,7 +290,7 @@ sampleGeometry(scene: Scene, samples = 24): Geometry                     // poly
 - `Sampling` picks which cases: `"window"` sorts cases by start time and takes the `limit` consecutive cases with the smallest start-time span (`densestWindow`, the busiest stretch); `"spread"` takes every `ceil(n / limit)`-th case.
 - `selectCases` also returns the raw span of the chosen cases (`span`: first start to last end; `syncedSpan`: longest case), which `useAnimation` uses to derive the playback factor before tracks are stretched.
 - Web logs have near-zero gaps between pages, so hops are stretched: a step starts at least `stretch.travel` after the previous step ends, and later steps shift with it.
-- A track starts `stretch.approach` before its first step (token travels Start to first activity) and ends `stretch.approach` after the last step (last activity to End). Times are log time in ms. `useAnimation` sets both from the factor so a hop takes about 0.5 s and the Start/End hops 0.4 s on screen at any speed.
+- A track starts `stretch.approach` before its first step (token travels Start to first activity) and ends `stretch.approach` after the last step (last activity to End). Times are log time in ms. `useAnimation` sets them from the factor so a hop takes about 0.5 s, the Start/End hops 0.4 s and a stay on a node at least 0.35 s on screen at any speed (web page views would otherwise be sub-millisecond and no node would ever light up).
 - `tokenPosition`: before the first step the token is on the `Start>first` edge; during a step on the node; between steps on the `from>to` edge (progress is linear in time, interpolated along the sampled polyline, or a straight line if the edge has no points); after the last step on `last>End`. `on` is the id of that node or edge. If the geometry has no such node or edge the result is `null`.
 - `activityDensity` counts active tracks per bin; the bar draws it behind the timeline.
 
@@ -324,7 +324,7 @@ Play/pause, timeline (density area behind a range slider, 0..1000), clock (real 
 
 A pool of `<circle class="pm-token" r="4">`, one per track. Each frame it sets `cx`, `cy` and `opacity` (0 when inactive, 1 when active). It also adds the class `is-active` to the host's `[data-id]` nodes and edges that currently carry a token and removes it when they do not, so CSS can highlight them. While paused it redraws every 120 ms so seeking updates the view; classes are removed on unmount.
 
-The map keeps its metric colours and is faded by CSS only (see theming.md); nothing is recoloured in JavaScript.
+During replay the map turns flat grey and only nodes and paths carrying a token are coloured, by CSS classes alone (see theming.md).
 
 ## Not exported
 
