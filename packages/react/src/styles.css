@@ -563,6 +563,37 @@
 .pm-tabs .pm-filterbar {
   margin-left: auto;
 }
+.pm-tabs .pm-tabs-summary {
+  margin-left: auto;
+  margin-right: 8px;
+  font-size: 12px;
+  color: var(--pm-muted);
+}
+.pm-tabs .pm-tabs-summary ~ .pm-filterbar {
+  margin-left: 0;
+}
+.pm-rail-footer {
+  margin-top: auto;
+  padding: 12px 0 20px;
+  border-top: 1px solid var(--pm-line);
+}
+.pm-map-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--pm-muted);
+}
+.pm-btn-primary {
+  background: var(--pm-accent);
+  color: var(--pm-accent-fg);
+  border-color: var(--pm-accent);
+}
+.pm-rail-footer .pm-map-tools .pm-map-export,
+.pm-rail-footer .pm-map-tools .pm-btn-primary {
+  flex: 1 1 100%;
+}
 .pm-chip {
   font: inherit;
   font-size: 12px;

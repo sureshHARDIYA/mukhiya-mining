@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   FREQUENCY_PALETTE,
   FREQUENCY_SHOWS,
@@ -23,6 +24,7 @@ interface Props {
   secondary: Show | null;
   onSecondary: (s: Show | null) => void;
   maxNode: number;
+  footer?: ReactNode;
 }
 
 export function MapRail({
@@ -35,6 +37,7 @@ export function MapRail({
   secondary,
   onSecondary,
   maxNode,
+  footer,
 }: Props) {
   const palette = metric === "frequency" ? FREQUENCY_PALETTE : PERFORMANCE_PALETTE;
   const shows = metric === "frequency" ? FREQUENCY_SHOWS : PERFORMANCE_SHOWS;
@@ -143,6 +146,7 @@ export function MapRail({
           ))}
         </select>
       </div>
+      {footer ? <div className="pm-rail-footer">{footer}</div> : null}
     </aside>
   );
 }

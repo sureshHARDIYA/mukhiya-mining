@@ -43,7 +43,8 @@ export interface ProcessMapProps {
 const DEFAULT_DETAIL: Detail = { activities: 1, paths: 0.2 };
 
 export function ProcessMap(props: ProcessMapProps) {
-  const { view, selection, setSelection, filters, setFilters, permissions } = useProcessModel();
+  const { view, selection, setSelection, filters, setFilters, permissions, setMapTools } =
+    useProcessModel();
   const { metric, setMetric, setShow, detail, setDetail, secondary, setSecondary, effectiveShow } =
     useMapSettings(props);
 
@@ -119,6 +120,25 @@ export function ProcessMap(props: ProcessMapProps) {
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, [onWheel]);
+  const summary = `${formatNumber(view.caseCount)} of ${formatNumber(view.log.cases.length)} cases · ${dfg.nodes.length - 2} activities · ${dfg.edges.length} paths`;
+  const fitToViewport = useCallback(() => {
+    const el = viewportRef.current;
+    if (el) fitView(scene, { width: el.clientWidth, height: el.clientHeight });
+  }, [fitView, scene]);
+  useEffect(() => {
+    setMapTools({ fit: fitToViewport, summary });
+    return () => setMapTools(null);
+  }, [setMapTools, fitToViewport, summary]);
+  const onExport = permissions.canExport
+    ? (kind: ExportKind) => {
+        const host = viewportRef.current;
+        if (kind === "png") void downloadPng(scene, host);
+        else if (kind === "svg") downloadSvg(scene, host);
+        else printPdf(scene, host);
+      }
+    : undefined;
+  const onAnimate = props.animation && !animating ? () => setAnimating(true) : undefined;
+  const tools = <MapTools onAnimate={onAnimate} onExport={onExport} />;
   const selectedId =
     selection?.kind === "activity" || selection?.kind === "path" ? selection.id : null;
   const popover = usePopover(
@@ -154,28 +174,15 @@ export function ProcessMap(props: ProcessMapProps) {
             onEdgeClick={onEdgeClick}
           />
         </svg>
-        <MapToolbar
-          zoom={pz.transform.k}
-          onFit={() =>
-            viewportRef.current &&
-            pz.fit(scene, {
-              width: viewportRef.current.clientWidth,
-              height: viewportRef.current.clientHeight,
-            })
-          }
-          summary={`${formatNumber(view.caseCount)} of ${formatNumber(view.log.cases.length)} cases · ${dfg.nodes.length - 2} activities · ${dfg.edges.length} paths`}
-          onAnimate={props.animation && !animating ? () => setAnimating(true) : undefined}
-          onExport={
-            permissions.canExport
-              ? (kind) => {
-                  const host = viewportRef.current;
-                  if (kind === "png") void downloadPng(scene, host);
-                  else if (kind === "svg") downloadSvg(scene, host);
-                  else printPdf(scene, host);
-                }
-              : undefined
-          }
-        />
+        {props.showRail === false ? (
+          <div className="pm-map-toolbar">
+            <span>{Math.round(pz.transform.k * 100)}%</span>
+            <button type="button" className="pm-btn" onClick={fitToViewport}>
+              Fit
+            </button>
+            {tools}
+          </div>
+        ) : null}
         {view.caseCount === 0 ? (
           <div className="pm-map-empty">No cases match the current filters.</div>
         ) : null}
@@ -203,6 +210,7 @@ export function ProcessMap(props: ProcessMapProps) {
           secondary={secondary}
           onSecondary={setSecondary}
           maxNode={maxNode}
+          footer={tools}
         />
       )}
     </div>
@@ -273,29 +281,19 @@ function usePopover(
 
 export type ExportKind = "png" | "svg" | "pdf";
 
-function MapToolbar({
-  zoom,
-  onFit,
-  summary,
+/** Animate and Export. Lives at the bottom of the rail, or over the map without one. */
+function MapTools({
   onAnimate,
   onExport,
 }: {
-  zoom: number;
-  onFit: () => void;
-  summary: string;
   onAnimate: (() => void) | undefined;
   onExport: ((kind: ExportKind) => void) | undefined;
 }) {
   return (
-    <div className="pm-map-toolbar">
-      <span>{Math.round(zoom * 100)}%</span>
-      <button type="button" className="pm-btn" onClick={onFit}>
-        Fit
-      </button>
-      <span>{summary}</span>
+    <div className="pm-map-tools">
       {onAnimate ? (
-        <button type="button" className="pm-btn" onClick={onAnimate}>
-          Animate
+        <button type="button" className="pm-btn pm-btn-primary" onClick={onAnimate}>
+          ▶ Animate
         </button>
       ) : null}
       {onExport ? (

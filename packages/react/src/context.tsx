@@ -1,5 +1,12 @@
 import { applyFilters, type EventLog, type Filter, type LogView } from "@mukhiya-mining/core";
-import { type CSSProperties, createContext, type ReactNode, useContext, useMemo } from "react";
+import {
+  type CSSProperties,
+  createContext,
+  type ReactNode,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { useControllable } from "./shared/useControllable";
 
 export type Selection =
@@ -31,6 +38,12 @@ export interface ProcessMiningProviderProps {
   children: ReactNode;
 }
 
+/** What the map exposes to the host chrome (explorer header): a fit action and a one-line summary. */
+export interface MapTools {
+  fit: () => void;
+  summary: string;
+}
+
 export interface ProcessMiningContextValue {
   log: EventLog;
   view: LogView;
@@ -40,6 +53,8 @@ export interface ProcessMiningContextValue {
   setSelection: (selection: Selection | null) => void;
   permissions: Required<Permissions>;
   onCaseOpen: ((caseId: string) => void) | undefined;
+  mapTools: MapTools | null;
+  setMapTools: (tools: MapTools | null) => void;
 }
 
 const Context = createContext<ProcessMiningContextValue | null>(null);
@@ -57,6 +72,7 @@ export function ProcessMiningProvider(props: ProcessMiningProviderProps) {
     props.onSelectionChange,
   );
   const view = useMemo(() => applyFilters(props.log, filters), [props.log, filters]);
+  const [mapTools, setMapTools] = useState<MapTools | null>(null);
   const permissions = useMemo(
     () => ({
       canFilter: props.permissions?.canFilter ?? true,
@@ -74,8 +90,20 @@ export function ProcessMiningProvider(props: ProcessMiningProviderProps) {
       setSelection,
       permissions,
       onCaseOpen: props.onCaseOpen,
+      mapTools,
+      setMapTools,
     }),
-    [props.log, view, filters, setFilters, selection, setSelection, permissions, props.onCaseOpen],
+    [
+      props.log,
+      view,
+      filters,
+      setFilters,
+      selection,
+      setSelection,
+      permissions,
+      props.onCaseOpen,
+      mapTools,
+    ],
   );
   const style = { ...(props.theme as CSSProperties | undefined), ...props.style };
   return (

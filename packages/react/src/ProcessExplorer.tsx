@@ -1,6 +1,6 @@
 import { type CSSProperties, useState } from "react";
 import { CasesView } from "./cases/CasesView";
-import { ProcessMiningProvider, type ProcessMiningProviderProps } from "./context";
+import { ProcessMiningProvider, type ProcessMiningProviderProps, useProcessModel } from "./context";
 import { FilterBar } from "./filters/FilterBar";
 import { ProcessMap, type ProcessMapProps } from "./map/ProcessMap";
 import { StatisticsView } from "./stats/StatisticsView";
@@ -54,7 +54,9 @@ export function ProcessExplorer({
               {t.label}
             </button>
           ))}
+          {current === "map" ? <MapSummary /> : null}
           <FilterBar />
+          {current === "map" ? <FitButton /> : null}
         </div>
         <div className="pm-body">
           {current === "map" ? (
@@ -67,5 +69,21 @@ export function ProcessExplorer({
         </div>
       </div>
     </ProcessMiningProvider>
+  );
+}
+
+/** Case, activity and path counts, fed by the mounted map. */
+function MapSummary() {
+  const { mapTools } = useProcessModel();
+  return mapTools ? <span className="pm-tabs-summary">{mapTools.summary}</span> : null;
+}
+
+function FitButton() {
+  const { mapTools } = useProcessModel();
+  if (!mapTools) return null;
+  return (
+    <button type="button" className="pm-btn" onClick={mapTools.fit}>
+      Fit
+    </button>
   );
 }

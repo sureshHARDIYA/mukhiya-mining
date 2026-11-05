@@ -79,7 +79,7 @@ Props = `ProcessMiningProviderProps` without `children`, plus:
 
 ## ProcessMap
 
-Needs a provider. Renders the SVG viewport, a toolbar (zoom %, "Fit", a summary and, with `animation`, an "Animate" button) and the right rail. The summary reads `X of Y cases · N activities · M paths` (kept cases of all cases in the log; Start and End are not counted as activities).
+Needs a provider. Renders the SVG viewport and the right rail. Nothing floats over the drawing: the rail footer holds "Animate" (with `animation`) and the "Export…" select, and the map registers `{ fit, summary }` in the context (`mapTools`), which `ProcessExplorer` shows in its header next to "+ filter" as the summary text and a "Fit" button. The summary reads `X of Y cases · N activities · M paths` (kept cases of all cases in the log; Start and End are not counted as activities). With `showRail={false}` a small overlay toolbar over the map carries zoom %, Fit, Animate and Export instead.
 
 | Prop | Type | Notes |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ Needs a provider. Renders the SVG viewport, a toolbar (zoom %, "Fit", a summary 
 | `detail` / `defaultDetail` / `onDetailChange` | `Detail` = `{ activities: number; paths: number }` (0..1) | Default `{ activities: 1, paths: 0.2 }`. |
 | `secondary` | `Show \| null` | **Initial** secondary metric only (read once into state). |
 | `showRail` | `boolean` | `false` hides the rail. |
-| `animation` | `boolean` | Shows the "Animate" toolbar button. See [Animation](#animation). Default off. |
+| `animation` | `boolean` | Shows the "Animate" button in the rail footer. See [Animation](#animation). Default off. |
 | `animationLimit` | `number` | Max cases replayed at once. Default `1500`. The demo passes `4000`. |
 | `className`, `style` | | |
 
@@ -230,7 +230,7 @@ Geometry helpers used by the scene: `Point`, `smoothPath(points)` (clamped unifo
 
 ## Export (`map/exportMap.ts`)
 
-`standaloneSvg(scene, host)` inlines the host's resolved `--pm-*` colours and a background rect into `sceneToSvg` output. `downloadSvg(scene, host, name?)`, `downloadPng(scene, host, name?, scale = 2)` (rasterised through an `<img>` and canvas) and `printPdf(scene, host, name?)` (a print window sized to the drawing; the user saves as PDF) back the toolbar's "Export…" select, shown when `permissions.canExport` is true. Exports use the current scene, i.e. the current activity and path detail and metric.
+`standaloneSvg(scene, host)` inlines the host's resolved `--pm-*` colours and a background rect into `sceneToSvg` output. `downloadSvg(scene, host, name?)`, `downloadPng(scene, host, name?, scale = 2)` (rasterised through an `<img>` and canvas) and `printPdf(scene, host, name?)` (a print window sized to the drawing; the user saves as PDF) back the rail footer's "Export…" select, shown when `permissions.canExport` is true. Exports use the current scene, i.e. the current activity and path detail and metric.
 
 ## ExplorerSkeleton
 
